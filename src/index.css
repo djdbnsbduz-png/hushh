@@ -2,104 +2,229 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Telegram Web Client Design System - Modern messaging app inspired by Telegram */
 
 @layer base {
   :root {
+    /* Base colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 215 16% 20%;
 
+    /* Telegram brand colors */
+    --telegram-blue: 207 98% 50%;
+    --telegram-blue-light: 207 86% 72%;
+    --telegram-blue-dark: 207 98% 40%;
+    
+    /* Message bubble colors */
+    --message-sent: 207 98% 50%;
+    --message-sent-foreground: 0 0% 100%;
+    --message-received: 0 0% 96%;
+    --message-received-foreground: 215 16% 20%;
+
+    /* Sidebar colors */
+    --sidebar-background: 218 22% 97%;
+    --sidebar-foreground: 215 16% 20%;
+    --sidebar-accent: 207 98% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-hover: 0 0% 94%;
+
+    /* Card and surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 16% 20%;
+    --card-border: 214 20% 88%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Primary actions */
+    --primary: 207 98% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 207 98% 45%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Secondary elements */
+    --secondary: 214 20% 94%;
+    --secondary-foreground: 215 16% 20%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Muted elements */
+    --muted: 214 20% 94%;
+    --muted-foreground: 215 8% 55%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Input fields */
+    --input: 0 0% 100%;
+    --input-border: 214 20% 88%;
+    --input-ring: 207 98% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Status indicators */
+    --online: 142 71% 45%;
+    --typing: 45 93% 47%;
+    --read: 207 98% 50%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Gradients */
+    --gradient-telegram: linear-gradient(135deg, hsl(207 98% 50%), hsl(207 86% 72%));
+    --gradient-message: linear-gradient(135deg, hsl(207 98% 50%), hsl(207 98% 55%));
+    --gradient-bg: linear-gradient(180deg, hsl(218 22% 99%), hsl(218 22% 97%));
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(215 16% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(215 16% 20% / 0.1), 0 2px 4px -2px hsl(215 16% 20% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(215 16% 20% / 0.1), 0 4px 6px -4px hsl(215 16% 20% / 0.1);
+    --shadow-chat: 0 1px 3px 0 hsl(215 16% 20% / 0.08);
 
-    --radius: 0.5rem;
+    /* Border radius */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Animations */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode for Telegram Web Client */
+    --background: 215 28% 8%;
+    --foreground: 210 20% 90%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Telegram brand colors (same in dark) */
+    --telegram-blue: 207 98% 55%;
+    --telegram-blue-light: 207 86% 75%;
+    --telegram-blue-dark: 207 98% 45%;
+    
+    /* Message bubble colors (dark) */
+    --message-sent: 207 98% 55%;
+    --message-sent-foreground: 0 0% 100%;
+    --message-received: 215 25% 15%;
+    --message-received-foreground: 210 20% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Sidebar colors (dark) */
+    --sidebar-background: 215 25% 12%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-accent: 207 98% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 25% 18%;
+    --sidebar-hover: 215 25% 16%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Card and surfaces (dark) */
+    --card: 215 25% 12%;
+    --card-foreground: 210 20% 90%;
+    --card-border: 215 25% 18%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Primary actions (dark) */
+    --primary: 207 98% 55%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 207 98% 60%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Secondary elements (dark) */
+    --secondary: 215 25% 16%;
+    --secondary-foreground: 210 20% 90%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Muted elements (dark) */
+    --muted: 215 25% 16%;
+    --muted-foreground: 215 10% 65%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Input fields (dark) */
+    --input: 215 25% 15%;
+    --input-border: 215 25% 20%;
+    --input-ring: 207 98% 55%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Status indicators (dark) */
+    --online: 142 71% 50%;
+    --typing: 45 93% 55%;
+    --read: 207 98% 55%;
+
+    /* Gradients (dark) */
+    --gradient-telegram: linear-gradient(135deg, hsl(207 98% 55%), hsl(207 86% 75%));
+    --gradient-message: linear-gradient(135deg, hsl(207 98% 55%), hsl(207 98% 60%));
+    --gradient-bg: linear-gradient(180deg, hsl(215 28% 8%), hsl(215 25% 12%));
+
+    /* Shadows (dark) */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+    --shadow-chat: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-card-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+    background: hsl(var(--background));
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Animation classes */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bounceIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Message animations */
+  .message-appear {
+    animation: messageAppear 0.2s ease-out;
+  }
+
+  @keyframes messageAppear {
+    from {
+      opacity: 0;
+      transform: translateY(5px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 }

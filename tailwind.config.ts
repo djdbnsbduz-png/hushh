@@ -19,54 +19,93 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
-				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+				
+				// Telegram brand colors
+				telegram: {
+					blue: 'hsl(var(--telegram-blue))',
+					'blue-light': 'hsl(var(--telegram-blue-light))',
+					'blue-dark': 'hsl(var(--telegram-blue-dark))',
 				},
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+
+				// Message colors
+				message: {
+					sent: 'hsl(var(--message-sent))',
+					'sent-foreground': 'hsl(var(--message-sent-foreground))',
+					received: 'hsl(var(--message-received))',
+					'received-foreground': 'hsl(var(--message-received-foreground))',
 				},
-				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
-				},
-				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
-				},
-				accent: {
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
-				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
-				},
+
+				// Status colors
+				online: 'hsl(var(--online))',
+				typing: 'hsl(var(--typing))',
+				read: 'hsl(var(--read))',
+
+				// Card colors
 				card: {
 					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
+					foreground: 'hsl(var(--card-foreground))',
+					border: 'hsl(var(--card-border))',
 				},
+
+				// Primary colors
+				primary: {
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))',
+					hover: 'hsl(var(--primary-hover))',
+				},
+
+				// Secondary colors
+				secondary: {
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))',
+				},
+
+				// Muted colors
+				muted: {
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))',
+				},
+
+				// Input colors
+				input: {
+					DEFAULT: 'hsl(var(--input))',
+					border: 'hsl(var(--input-border))',
+					ring: 'hsl(var(--input-ring))',
+				},
+
+				// Sidebar colors
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
 					accent: 'hsl(var(--sidebar-accent))',
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					hover: 'hsl(var(--sidebar-hover))',
 				}
+			},
+			backgroundImage: {
+				'gradient-telegram': 'var(--gradient-telegram)',
+				'gradient-message': 'var(--gradient-message)',
+				'gradient-bg': 'var(--gradient-bg)',
+			},
+			boxShadow: {
+				'sm': 'var(--shadow-sm)',
+				'md': 'var(--shadow-md)',
+				'lg': 'var(--shadow-lg)',
+				'chat': 'var(--shadow-chat)',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'radius-sm': 'var(--radius-sm)',
+				'radius-lg': 'var(--radius-lg)',
+			},
+			transitionProperty: {
+				'smooth': 'var(--transition-smooth)',
+				'bounce': 'var(--transition-bounce)',
 			},
 			keyframes: {
 				'accordion-down': {
