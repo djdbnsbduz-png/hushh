@@ -1,35 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { Layout } from './Layout';
-import { LoginPage } from './LoginPage';
+import { AuthPage } from '@/components/auth/AuthPage';
+import { Spinner } from '@/components/ui/spinner';
 
 export const TelegramApp = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    // Check if user is already authenticated (from localStorage, etc.)
-    const authToken = localStorage.getItem('telegram_auth');
-    if (authToken) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  const handleAuthenticated = () => {
-    // In a real app, you'd store the auth token
-    localStorage.setItem('telegram_auth', 'authenticated');
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('telegram_auth');
-    setIsAuthenticated(false);
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-telegram-bg">
+        <Spinner className="h-8 w-8" />
+      </div>
+    );
+  }
 
   return (
     <>
-      {isAuthenticated ? (
+      {user ? (
         <Layout />
       ) : (
-        <LoginPage onAuthenticated={handleAuthenticated} />
+        <AuthPage />
       )}
     </>
   );
