@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { UpdatedLayout } from './UpdatedLayout';
+import { NewChatScreen } from '@/components/chat/NewChatScreen';
 
 export interface Contact {
   id: string;
@@ -21,5 +23,11 @@ export interface Message {
 }
 
 export const Layout = () => {
-  return <UpdatedLayout />;
+  const [showNewChat, setShowNewChat] = useState(false);
+
+  if (showNewChat) {
+    return <NewChatScreen onBack={() => setShowNewChat(false)} />;
+  }
+
+  return <UpdatedLayout onNewChat={() => setShowNewChat(true)} />;
 };

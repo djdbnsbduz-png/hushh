@@ -106,9 +106,12 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
               <Input
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                placeholder="Enter your unique username"
               />
+              <p className="text-xs text-muted-foreground">
+                Username must be unique and can only contain letters, numbers, and underscores
+              </p>
             </div>
 
             <div className="space-y-2">

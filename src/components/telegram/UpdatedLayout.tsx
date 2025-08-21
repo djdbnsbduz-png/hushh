@@ -11,9 +11,14 @@ import { Separator } from '@/components/ui/separator';
 import { Search, Send, Settings, Plus, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-export const UpdatedLayout = () => {
-  const { conversations, activeConversation, setActiveConversation, messages, sendMessage } = useMessages();
+interface UpdatedLayoutProps {
+  onNewChat: () => void;
+}
+
+export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
+  const { conversations, messages, sendMessage, setActiveConversation } = useMessages();
   const { profile } = useProfile();
+  const [activeConversation, setActiveConversationLocal] = useState<string>('');
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,6 +35,11 @@ export const UpdatedLayout = () => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleConversationClick = (conversationId: string) => {
+    setActiveConversationLocal(conversationId);
+    setActiveConversation(conversationId);
   };
 
   const filteredConversations = conversations.filter(conv =>
@@ -87,7 +97,7 @@ export const UpdatedLayout = () => {
                 className={`p-3 cursor-pointer mb-2 transition-colors hover:bg-sidebar-hover ${
                   activeConversation === conversation.id ? 'bg-telegram-blue text-white' : 'bg-transparent'
                 }`}
-                onClick={() => setActiveConversation(conversation.id)}
+                onClick={() => handleConversationClick(conversation.id)}
               >
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
@@ -117,7 +127,7 @@ export const UpdatedLayout = () => {
 
         {/* New Chat Button */}
         <div className="p-4 border-t border-sidebar-border">
-          <Button className="w-full" variant="outline">
+          <Button className="w-full" variant="outline" onClick={onNewChat}>
             <Plus className="mr-2 h-4 w-4" />
             New Chat
           </Button>
@@ -200,7 +210,7 @@ export const UpdatedLayout = () => {
               <p className="text-muted-foreground mb-8">
                 Select a conversation to start chatting
               </p>
-              <Button>
+              <Button onClick={onNewChat}>
                 <Plus className="mr-2 h-4 w-4" />
                 Start New Chat
               </Button>

@@ -54,17 +54,44 @@ export const useProfile = () => {
     if (!user) return;
 
     try {
+      // Check if username is being updated and if it's already taken
+      if (updates.username) {
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', updates.username)
+          .neq('user_id', user.id)
+          .single();
+
+        if (existingUser) {
+          toast({
+            title: "Username Taken",
+            description: "This username is already taken. Please choose another one.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('user_id', user.id);
 
       if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to update profile",
-          variant: "destructive",
-        });
+        if (error.code === '23505' && error.message.includes('profiles_username_unique')) {
+          toast({
+            title: "Username Taken",
+            description: "This username is already taken. Please choose another one.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to update profile",
+            variant: "destructive",
+          });
+        }
       } else {
         setProfile(prev => prev ? { ...prev, ...updates } : null);
         toast({

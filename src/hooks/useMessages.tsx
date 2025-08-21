@@ -226,6 +226,42 @@ export const useMessages = () => {
     };
   };
 
+  const startNewConversation = async (participantUserId: string, participantName: string) => {
+    if (!user) return;
+
+    try {
+      // Create new conversation
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          title: participantName,
+          is_group: false,
+        })
+        .select()
+        .single();
+
+      if (convError) throw convError;
+
+      // Add both users as participants
+      const { error: participantsError } = await supabase
+        .from('conversation_participants')
+        .insert([
+          { conversation_id: conversation.id, user_id: user.id },
+          { conversation_id: conversation.id, user_id: participantUserId }
+        ]);
+
+      if (participantsError) throw participantsError;
+
+      // Refresh conversations and set as active
+      setActiveConversation(conversation.id);
+      fetchConversations();
+      
+    } catch (error) {
+      console.error('Error starting new conversation:', error);
+      throw error;
+    }
+  };
+
   return {
     conversations,
     activeConversation,
@@ -234,6 +270,7 @@ export const useMessages = () => {
     loading,
     sendMessage,
     createConversation,
+    startNewConversation,
     fetchConversations,
   };
 };
