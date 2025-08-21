@@ -6,67 +6,67 @@
 
 @layer base {
   :root {
-    /* Base colors */
-    --background: 0 0% 100%;
-    --foreground: 215 16% 20%;
+    /* Base colors - Dark Anonymous Theme */
+    --background: 220 13% 9%;
+    --foreground: 220 9% 85%;
 
-    /* Telegram brand colors */
-    --telegram-blue: 207 98% 50%;
-    --telegram-blue-light: 207 86% 72%;
-    --telegram-blue-dark: 207 98% 40%;
+    /* Anonymous brand colors - muted and dark */
+    --telegram-blue: 220 9% 65%;
+    --telegram-blue-light: 220 9% 75%;
+    --telegram-blue-dark: 220 9% 55%;
     
-    /* Message bubble colors */
-    --message-sent: 207 98% 50%;
-    --message-sent-foreground: 0 0% 100%;
-    --message-received: 0 0% 96%;
-    --message-received-foreground: 215 16% 20%;
+    /* Message bubble colors - dark and anonymous */
+    --message-sent: 220 9% 25%;
+    --message-sent-foreground: 220 9% 85%;
+    --message-received: 220 13% 15%;
+    --message-received-foreground: 220 9% 85%;
 
-    /* Sidebar colors */
-    --sidebar-background: 218 22% 97%;
-    --sidebar-foreground: 215 16% 20%;
-    --sidebar-accent: 207 98% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 214 20% 90%;
-    --sidebar-hover: 0 0% 94%;
+    /* Sidebar colors - very dark */
+    --sidebar-background: 220 13% 6%;
+    --sidebar-foreground: 220 9% 85%;
+    --sidebar-accent: 220 9% 65%;
+    --sidebar-accent-foreground: 220 13% 9%;
+    --sidebar-border: 220 13% 18%;
+    --sidebar-hover: 220 13% 12%;
 
-    /* Card and surfaces */
-    --card: 0 0% 100%;
-    --card-foreground: 215 16% 20%;
-    --card-border: 214 20% 88%;
+    /* Card and surfaces - dark with subtle borders */
+    --card: 220 13% 11%;
+    --card-foreground: 220 9% 85%;
+    --card-border: 220 13% 18%;
 
-    /* Primary actions */
-    --primary: 207 98% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 207 98% 45%;
+    /* Primary actions - muted anonymous */
+    --primary: 220 9% 65%;
+    --primary-foreground: 220 13% 9%;
+    --primary-hover: 220 9% 70%;
 
-    /* Secondary elements */
-    --secondary: 214 20% 94%;
-    --secondary-foreground: 215 16% 20%;
+    /* Secondary elements - very dark */
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 220 9% 85%;
 
-    /* Muted elements */
-    --muted: 214 20% 94%;
-    --muted-foreground: 215 8% 55%;
+    /* Muted elements - subtle grays */
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 55%;
 
-    /* Input fields */
-    --input: 0 0% 100%;
-    --input-border: 214 20% 88%;
-    --input-ring: 207 98% 50%;
+    /* Input fields - dark with subtle borders */
+    --input: 220 13% 13%;
+    --input-border: 220 13% 20%;
+    --input-ring: 220 9% 65%;
 
-    /* Status indicators */
-    --online: 142 71% 45%;
-    --typing: 45 93% 47%;
-    --read: 207 98% 50%;
+    /* Status indicators - muted */
+    --online: 142 30% 45%;
+    --typing: 45 30% 55%;
+    --read: 220 9% 65%;
 
-    /* Gradients */
-    --gradient-telegram: linear-gradient(135deg, hsl(207 98% 50%), hsl(207 86% 72%));
-    --gradient-message: linear-gradient(135deg, hsl(207 98% 50%), hsl(207 98% 55%));
-    --gradient-bg: linear-gradient(180deg, hsl(218 22% 99%), hsl(218 22% 97%));
+    /* Gradients - dark and subtle */
+    --gradient-telegram: linear-gradient(135deg, hsl(220 13% 15%), hsl(220 13% 20%));
+    --gradient-message: linear-gradient(135deg, hsl(220 9% 25%), hsl(220 9% 30%));
+    --gradient-bg: linear-gradient(180deg, hsl(220 13% 9%), hsl(220 13% 11%));
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(215 16% 20% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(215 16% 20% / 0.1), 0 2px 4px -2px hsl(215 16% 20% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(215 16% 20% / 0.1), 0 4px 6px -4px hsl(215 16% 20% / 0.1);
-    --shadow-chat: 0 1px 3px 0 hsl(215 16% 20% / 0.08);
+    /* Shadows - dark and subtle */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+    --shadow-chat: 0 1px 3px 0 hsl(0 0% 0% / 0.4);
 
     /* Border radius */
     --radius: 0.75rem;
@@ -79,67 +79,67 @@
   }
 
   .dark {
-    /* Dark mode for Telegram Web Client */
-    --background: 215 28% 8%;
-    --foreground: 210 20% 90%;
+    /* Darker Anonymous Mode - Even deeper colors */
+    --background: 220 13% 5%;
+    --foreground: 220 9% 90%;
 
-    /* Telegram brand colors (same in dark) */
-    --telegram-blue: 207 98% 55%;
-    --telegram-blue-light: 207 86% 75%;
-    --telegram-blue-dark: 207 98% 45%;
+    /* Anonymous brand colors - darker and more muted */
+    --telegram-blue: 220 9% 60%;
+    --telegram-blue-light: 220 9% 70%;
+    --telegram-blue-dark: 220 9% 50%;
     
-    /* Message bubble colors (dark) */
-    --message-sent: 207 98% 55%;
-    --message-sent-foreground: 0 0% 100%;
-    --message-received: 215 25% 15%;
-    --message-received-foreground: 210 20% 90%;
+    /* Message bubble colors - very dark */
+    --message-sent: 220 9% 20%;
+    --message-sent-foreground: 220 9% 90%;
+    --message-received: 220 13% 10%;
+    --message-received-foreground: 220 9% 90%;
 
-    /* Sidebar colors (dark) */
-    --sidebar-background: 215 25% 12%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-accent: 207 98% 55%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 25% 18%;
-    --sidebar-hover: 215 25% 16%;
+    /* Sidebar colors - almost black */
+    --sidebar-background: 220 13% 3%;
+    --sidebar-foreground: 220 9% 90%;
+    --sidebar-accent: 220 9% 60%;
+    --sidebar-accent-foreground: 220 13% 5%;
+    --sidebar-border: 220 13% 12%;
+    --sidebar-hover: 220 13% 8%;
 
-    /* Card and surfaces (dark) */
-    --card: 215 25% 12%;
-    --card-foreground: 210 20% 90%;
-    --card-border: 215 25% 18%;
+    /* Card and surfaces - very dark */
+    --card: 220 13% 7%;
+    --card-foreground: 220 9% 90%;
+    --card-border: 220 13% 12%;
 
-    /* Primary actions (dark) */
-    --primary: 207 98% 55%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 207 98% 60%;
+    /* Primary actions - muted and dark */
+    --primary: 220 9% 60%;
+    --primary-foreground: 220 13% 5%;
+    --primary-hover: 220 9% 65%;
 
-    /* Secondary elements (dark) */
-    --secondary: 215 25% 16%;
-    --secondary-foreground: 210 20% 90%;
+    /* Secondary elements - darker */
+    --secondary: 220 13% 10%;
+    --secondary-foreground: 220 9% 90%;
 
-    /* Muted elements (dark) */
-    --muted: 215 25% 16%;
-    --muted-foreground: 215 10% 65%;
+    /* Muted elements - very subtle */
+    --muted: 220 13% 10%;
+    --muted-foreground: 220 9% 50%;
 
-    /* Input fields (dark) */
-    --input: 215 25% 15%;
-    --input-border: 215 25% 20%;
-    --input-ring: 207 98% 55%;
+    /* Input fields - very dark */
+    --input: 220 13% 8%;
+    --input-border: 220 13% 15%;
+    --input-ring: 220 9% 60%;
 
-    /* Status indicators (dark) */
-    --online: 142 71% 50%;
-    --typing: 45 93% 55%;
-    --read: 207 98% 55%;
+    /* Status indicators - more muted */
+    --online: 142 25% 40%;
+    --typing: 45 25% 50%;
+    --read: 220 9% 60%;
 
-    /* Gradients (dark) */
-    --gradient-telegram: linear-gradient(135deg, hsl(207 98% 55%), hsl(207 86% 75%));
-    --gradient-message: linear-gradient(135deg, hsl(207 98% 55%), hsl(207 98% 60%));
-    --gradient-bg: linear-gradient(180deg, hsl(215 28% 8%), hsl(215 25% 12%));
+    /* Gradients - very dark and subtle */
+    --gradient-telegram: linear-gradient(135deg, hsl(220 13% 10%), hsl(220 13% 15%));
+    --gradient-message: linear-gradient(135deg, hsl(220 9% 20%), hsl(220 9% 25%));
+    --gradient-bg: linear-gradient(180deg, hsl(220 13% 5%), hsl(220 13% 7%));
 
-    /* Shadows (dark) */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
-    --shadow-chat: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
+    /* Shadows - deeper and more pronounced */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.5);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.5), 0 2px 4px -2px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5), 0 4px 6px -4px hsl(0 0% 0% / 0.4);
+    --shadow-chat: 0 1px 3px 0 hsl(0 0% 0% / 0.5);
   }
 }
 
