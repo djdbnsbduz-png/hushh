@@ -40,9 +40,9 @@ export const UpdatedLayout = () => {
   const activeConv = conversations.find(c => c.id === activeConversation);
 
   return (
-    <div className="flex h-screen bg-telegram-bg">
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <div className="w-80 bg-sidebar-bg border-r border-sidebar-border flex flex-col">
+      <div className="w-80 bg-sidebar border-r border-sidebar-border flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between mb-4">
@@ -52,8 +52,8 @@ export const UpdatedLayout = () => {
                 <AvatarFallback>{profile?.display_name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="font-semibold text-sidebar-text">{profile?.display_name || 'User'}</h2>
-                <p className="text-sm text-sidebar-text-muted">Online</p>
+                <h2 className="font-semibold text-sidebar-foreground">{profile?.display_name || 'User'}</h2>
+                <p className="text-sm text-muted-foreground">Online</p>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -68,10 +68,10 @@ export const UpdatedLayout = () => {
           
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sidebar-text-muted h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Search conversations..."
-              className="pl-10 bg-sidebar-input border-sidebar-input-border"
+              className="pl-10 bg-input border-input-border"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
