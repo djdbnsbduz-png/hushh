@@ -94,7 +94,7 @@ export const AuthPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-telegram-bg p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-telegram-blue">Telegram Clone</CardTitle>
+          <CardTitle className="text-2xl font-bold text-telegram-blue">隱私</CardTitle>
           <CardDescription>Welcome! Please sign in or create an account.</CardDescription>
         </CardHeader>
         <CardContent>

@@ -196,7 +196,7 @@ export const UpdatedLayout = () => {
           /* Welcome Screen */
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Welcome to Telegram Clone</h2>
+              <h2 className="text-2xl font-bold mb-4">Welcome to 隱私</h2>
               <p className="text-muted-foreground mb-8">
                 Select a conversation to start chatting
               </p>
