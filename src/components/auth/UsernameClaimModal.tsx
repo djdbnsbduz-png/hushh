@@ -60,7 +60,7 @@ export const UsernameClaimModal = ({ isOpen, onSuccess }: UsernameClaimModalProp
       }
 
       // Create account with temporary email and the chosen password
-      const tempEmail = `${username.toLowerCase()}@temp.local`;
+      const tempEmail = `${username.toLowerCase()}@example.com`;
       const { data, error } = await supabase.auth.signUp({
         email: tempEmail,
         password,
