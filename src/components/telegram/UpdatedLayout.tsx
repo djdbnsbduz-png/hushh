@@ -101,15 +101,17 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
               >
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={conversation.avatar_url} />
+                    <AvatarImage src={conversation.participant_profile?.avatar_url || conversation.avatar_url} />
                     <AvatarFallback>
-                      {conversation.title?.[0]?.toUpperCase() || 'C'}
+                      {conversation.participant_profile?.display_name?.[0]?.toUpperCase() || 
+                       conversation.title?.[0]?.toUpperCase() || 'C'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="font-medium truncate">
-                        {conversation.title || 'Conversation'}
+                        {conversation.participant_profile?.display_name || 
+                         conversation.title || 'Conversation'}
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
@@ -142,13 +144,17 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
             <div className="p-4 border-b border-border bg-card">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={activeConv?.avatar_url} />
+                  <AvatarImage src={activeConv?.participant_profile?.avatar_url || activeConv?.avatar_url} />
                   <AvatarFallback>
-                    {activeConv?.title?.[0]?.toUpperCase() || 'C'}
+                    {activeConv?.participant_profile?.display_name?.[0]?.toUpperCase() || 
+                     activeConv?.title?.[0]?.toUpperCase() || 'C'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold">{activeConv?.title || 'Conversation'}</h3>
+                  <h3 className="font-semibold">
+                    {activeConv?.participant_profile?.display_name || 
+                     activeConv?.title || 'Conversation'}
+                  </h3>
                   <p className="text-sm text-muted-foreground">Online</p>
                 </div>
               </div>

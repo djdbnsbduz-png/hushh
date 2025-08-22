@@ -24,6 +24,12 @@ interface Conversation {
   avatar_url?: string;
   created_at: string;
   updated_at: string;
+  participant_profile?: {
+    display_name: string;
+    username: string;
+    avatar_url?: string;
+    user_id: string;
+  };
 }
 
 export const useMessages = () => {
@@ -63,7 +69,7 @@ export const useMessages = () => {
         return;
       }
 
-      // Extract unique conversations
+      // Extract unique conversations and enrich DMs with participant info
       const uniqueConversations = participantData?.reduce((acc, item) => {
         const conv = item.conversations;
         if (conv && !acc.find(c => c.id === conv.id)) {
@@ -72,7 +78,40 @@ export const useMessages = () => {
         return acc;
       }, [] as any[]) || [];
 
-      setConversations(uniqueConversations);
+      // For DM conversations, get the other participant's profile info
+      const enrichedConversations = await Promise.all(
+        uniqueConversations.map(async (conversation) => {
+          if (!conversation.is_group) {
+            // Get the other participant
+            const { data: participants } = await supabase
+              .from('conversation_participants')
+              .select('user_id')
+              .eq('conversation_id', conversation.id)
+              .neq('user_id', user?.id);
+
+            if (participants && participants.length > 0) {
+              const otherUserId = participants[0].user_id;
+              
+              // Get their profile
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('display_name, username, avatar_url, user_id')
+                .eq('user_id', otherUserId)
+                .single();
+
+              if (profile) {
+                return {
+                  ...conversation,
+                  participant_profile: profile
+                };
+              }
+            }
+          }
+          return conversation;
+        })
+      );
+
+      setConversations(enrichedConversations);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -230,7 +269,41 @@ export const useMessages = () => {
     if (!user) return;
 
     try {
-      // Create new conversation
+      // First, check if a DM conversation already exists between these two users
+      const { data: existingConversations, error: fetchError } = await supabase
+        .from('conversation_participants')
+        .select(`
+          conversation_id,
+          conversations!inner(*)
+        `)
+        .eq('user_id', user.id);
+
+      if (fetchError) throw fetchError;
+
+      // Check each conversation to see if it's a DM with the target user
+      for (const convData of existingConversations || []) {
+        const conversation = convData.conversations;
+        if (!conversation.is_group) {
+          // Get all participants for this conversation
+          const { data: participants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', conversation.id);
+
+          // Check if this is a DM with the target user (only 2 participants)
+          if (participants?.length === 2) {
+            const participantIds = participants.map(p => p.user_id);
+            if (participantIds.includes(participantUserId)) {
+              // Found existing DM conversation
+              setActiveConversation(conversation.id);
+              fetchConversations();
+              return conversation.id;
+            }
+          }
+        }
+      }
+
+      // No existing conversation found, create a new one
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -256,6 +329,7 @@ export const useMessages = () => {
       setActiveConversation(conversation.id);
       fetchConversations();
       
+      return conversation.id;
     } catch (error) {
       console.error('Error starting new conversation:', error);
       throw error;
