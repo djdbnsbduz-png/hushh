@@ -52,8 +52,15 @@ export const AuthPage = () => {
     setIsLoading(true);
 
     try {
+      let loginEmail = email;
+      
+      // If the input doesn't contain @, assume it's a username and convert to email format
+      if (!email.includes('@')) {
+        loginEmail = `${email.toLowerCase()}@example.com`;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: loginEmail,
         password,
       });
 
