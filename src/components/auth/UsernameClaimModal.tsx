@@ -43,14 +43,22 @@ export const UsernameClaimModal = ({ isOpen, onSuccess }: UsernameClaimModalProp
         return;
       }
 
-      // Check if username is available by searching for existing profiles
-      const { data: existingUser } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('username', username.toLowerCase())
-        .single();
+      // Check if username is available using secure function
+      const { data: isAvailable, error: availabilityError } = await supabase.rpc(
+        'check_username_availability',
+        { check_username: username.toLowerCase() }
+      );
 
-      if (existingUser) {
+      if (availabilityError) {
+        toast({
+          title: "Error",
+          description: "Failed to check username availability",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!isAvailable) {
         toast({
           title: "Username Taken",
           description: "This username is already taken. Please choose another one.",

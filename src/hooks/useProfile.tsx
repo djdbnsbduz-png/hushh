@@ -56,14 +56,21 @@ export const useProfile = () => {
     try {
       // Check if username is being updated and if it's already taken
       if (updates.username) {
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', updates.username)
-          .neq('user_id', user.id)
-          .single();
+        const { data: isAvailable, error: availabilityError } = await supabase.rpc(
+          'check_username_availability',
+          { check_username: updates.username.toLowerCase() }
+        );
 
-        if (existingUser) {
+        if (availabilityError) {
+          toast({
+            title: "Error",
+            description: "Failed to check username availability",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (!isAvailable) {
           toast({
             title: "Username Taken",
             description: "This username is already taken. Please choose another one.",

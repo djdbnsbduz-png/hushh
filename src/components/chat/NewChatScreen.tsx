@@ -36,7 +36,7 @@ export const NewChatScreen = ({ onBack }: NewChatScreenProps) => {
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase.rpc('search_users_by_identifier', {
+      const { data, error } = await supabase.rpc('search_users_safely', {
         search_term: searchTerm.trim()
       });
 

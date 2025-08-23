@@ -149,6 +149,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_username_availability: {
+        Args: { check_username: string }
+        Returns: boolean
+      }
       search_users_by_identifier: {
         Args: { search_term: string }
         Returns: {
@@ -156,6 +160,16 @@ export type Database = {
           display_name: string
           id: string
           phone: string
+          user_id: string
+          username: string
+        }[]
+      }
+      search_users_safely: {
+        Args: { search_term: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          id: string
           user_id: string
           username: string
         }[]
