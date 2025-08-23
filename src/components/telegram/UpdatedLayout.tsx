@@ -118,7 +118,9 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground truncate">
-                      No messages yet
+                      {messages.length > 0 && messages[messages.length - 1]?.conversation_id === conversation.id 
+                        ? messages[messages.length - 1]?.content 
+                        : 'No messages yet'}
                     </p>
                   </div>
                 </div>
