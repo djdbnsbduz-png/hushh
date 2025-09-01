@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { UsernameClaimModal } from './UsernameClaimModal';
 
 export const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,8 +16,8 @@ export const AuthPage = () => {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [authMode, setAuthMode] = useState<'code' | 'signin' | 'signup'>('signin');
-  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const { toast } = useToast();
 
   const VALID_AUTH_CODE = '3!aB9$xQ2#jL7^tH6@fR1&zN8*eW4%qY0!mP5^kJ3#vT9&hZ1@cX7!sR2^lF8$qM6#bV3%aT5!jH0&gY9^nP4@wZ2*eK8#xL1';
@@ -31,9 +30,9 @@ export const AuthPage = () => {
       if (authCode === VALID_AUTH_CODE) {
         toast({
           title: "Code Verified!",
-          description: "Now claim your username to create your account.",
+          description: "You can now sign in or create an account.",
         });
-        setShowClaimModal(true);
+        setIsCodeVerified(true);
       } else {
         toast({
           title: "Invalid Code",
@@ -59,9 +58,27 @@ export const AuthPage = () => {
     try {
       let loginEmail = email;
       
-      // If the input doesn't contain @, assume it's a username and convert to email format
+      // If the input doesn't contain @, assume it's a username and look up the email
       if (!email.includes('@')) {
-        loginEmail = `${email.toLowerCase()}@example.com`;
+        // For username login, we need to find the email associated with the username
+        const { data: profiles, error: lookupError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', email.toLowerCase())
+          .single();
+        
+        if (lookupError || !profiles) {
+          toast({
+            title: "User Not Found",
+            description: "No account found with that username.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Convert username to email format for auth
+        loginEmail = `${email.toLowerCase()}@app.local`;
       }
 
       const { error } = await supabase.auth.signInWithPassword({
@@ -123,6 +140,7 @@ export const AuthPage = () => {
           description: "Failed to check username availability",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -132,12 +150,16 @@ export const AuthPage = () => {
           description: "This username is already taken. Please choose another one.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
+      // Use a consistent email format for username-based accounts
+      const signupEmail = email.includes('@') ? email : `${username.toLowerCase()}@app.local`;
+
       // Sign up user
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: signupEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
@@ -161,7 +183,7 @@ export const AuthPage = () => {
       if (data.user) {
         toast({
           title: "Account Created!",
-          description: "Please check your email to verify your account.",
+          description: email.includes('@') ? "Please check your email to verify your account." : "Your account has been created successfully!",
         });
         
         // Clear form
@@ -184,11 +206,6 @@ export const AuthPage = () => {
     }
   };
 
-  const handleClaimSuccess = () => {
-    setShowClaimModal(false);
-    // Auth state will be handled by the AuthProvider
-  };
-
   const renderAuthModeSelector = () => (
     <div className="flex space-x-1 mb-6 p-1 bg-muted rounded-lg">
       <Button
@@ -208,15 +225,6 @@ export const AuthPage = () => {
         onClick={() => setAuthMode('signup')}
       >
         Sign Up
-      </Button>
-      <Button
-        type="button"
-        variant={authMode === 'code' ? 'default' : 'ghost'}
-        size="sm"
-        className="flex-1"
-        onClick={() => setAuthMode('code')}
-      >
-        Code
       </Button>
     </div>
   );
@@ -255,14 +263,13 @@ export const AuthPage = () => {
   const renderSignUpForm = () => (
     <form onSubmit={handleSignUp} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="signup-email">Email</Label>
+        <Label htmlFor="signup-email">Email (optional)</Label>
         <Input
           id="signup-email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="Enter your email (optional)"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
         />
       </div>
       <div className="space-y-2">
@@ -346,42 +353,42 @@ export const AuthPage = () => {
     </form>
   );
 
-  const getFormTitle = () => {
-    if (authMode === 'signin') return 'Welcome Back';
-    if (authMode === 'signup') return 'Create Account';
-    return 'Enter Code';
-  };
-
-  const getFormDescription = () => {
-    if (authMode === 'signin') return 'Sign in to your existing account';
-    if (authMode === 'signup') return 'Create a new account to get started';
-    return 'Enter the authentication code to access the app';
-  };
-
-  return (
-    <>
+  // If code is not verified, show the auth code screen
+  if (!isCodeVerified) {
+    return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-telegram-blue">隱私</CardTitle>
             <CardDescription>
-              {getFormDescription()}
+              Enter the authentication code to access the app
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {renderAuthModeSelector()}
-            
-            {authMode === 'signin' && renderSignInForm()}
-            {authMode === 'signup' && renderSignUpForm()}
-            {authMode === 'code' && renderAuthCodeForm()}
+            {renderAuthCodeForm()}
           </CardContent>
         </Card>
       </div>
-      
-      <UsernameClaimModal 
-        isOpen={showClaimModal} 
-        onSuccess={handleClaimSuccess}
-      />
-    </>
+    );
+  }
+
+  // After code is verified, show sign in/sign up options
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold text-telegram-blue">隱私</CardTitle>
+          <CardDescription>
+            {authMode === 'signin' ? 'Sign in to your existing account' : 'Create a new account to get started'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {renderAuthModeSelector()}
+          
+          {authMode === 'signin' && renderSignInForm()}
+          {authMode === 'signup' && renderSignUpForm()}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
