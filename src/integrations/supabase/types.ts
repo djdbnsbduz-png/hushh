@@ -153,6 +153,14 @@ export type Database = {
         Args: { check_username: string }
         Returns: boolean
       }
+      is_conversation_participant: {
+        Args: { conversation_id: string }
+        Returns: boolean
+      }
+      is_profile_owner: {
+        Args: { profile_user_id: string }
+        Returns: boolean
+      }
       search_users_safely: {
         Args: { search_term: string }
         Returns: {
