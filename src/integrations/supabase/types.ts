@@ -171,6 +171,10 @@ export type Database = {
           username: string
         }[]
       }
+      user_can_access_conversation: {
+        Args: { conversation_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
