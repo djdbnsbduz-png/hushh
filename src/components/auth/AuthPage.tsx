@@ -9,7 +9,6 @@ import { Loader2 } from 'lucide-react';
 
 export const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [authCode, setAuthCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,39 +16,8 @@ export const AuthPage = () => {
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const { toast } = useToast();
 
-  const VALID_AUTH_CODE = '3!aB9$xQ2#jL7^tH6@fR1&zN8*eW4%qY0!mP5^kJ3#vT9&hZ1@cX7!sR2^lF8$qM6#bV3%aT5!jH0&gY9^nP4@wZ2*eK8#xL1';
-
-  const handleAuthCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      if (authCode === VALID_AUTH_CODE) {
-        toast({
-          title: "Code Verified!",
-          description: "You can now sign in or create an account.",
-        });
-        setIsCodeVerified(true);
-      } else {
-        toast({
-          title: "Invalid Code",
-          description: "The authentication code you entered is incorrect.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -332,47 +300,7 @@ export const AuthPage = () => {
     </form>
   );
 
-  const renderAuthCodeForm = () => (
-    <form onSubmit={handleAuthCode} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="auth-code">Authentication Code</Label>
-        <Input
-          id="auth-code"
-          type="password"
-          placeholder="Enter authentication code"
-          value={authCode}
-          onChange={(e) => setAuthCode(e.target.value)}
-          required
-          className="font-mono"
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        Verify Code
-      </Button>
-    </form>
-  );
-
-  // If code is not verified, show the auth code screen
-  if (!isCodeVerified) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-telegram-blue">隱私</CardTitle>
-            <CardDescription>
-              Enter the authentication code to access the app
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderAuthCodeForm()}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // After code is verified, show sign in/sign up options
+  // Show sign in/sign up options directly
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
