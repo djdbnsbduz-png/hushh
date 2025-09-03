@@ -43,13 +43,16 @@ export const useMessages = () => {
   useEffect(() => {
     if (user) {
       fetchConversations();
-      setupRealtimeSubscription();
+      const cleanup = setupRealtimeSubscription();
+      return cleanup;
     }
   }, [user]);
 
   useEffect(() => {
     if (activeConversation) {
       fetchMessages(activeConversation);
+    } else {
+      setMessages([]);
     }
   }, [activeConversation]);
 
@@ -249,11 +252,35 @@ export const useMessages = () => {
           schema: 'public',
           table: 'messages',
         },
-        (payload) => {
+        async (payload) => {
           const newMessage = payload.new as Message;
-          if (newMessage.conversation_id === activeConversation) {
-            setMessages(prev => [...prev, newMessage]);
-          }
+          
+          // Fetch the sender's profile for the new message
+          const { data: senderProfile } = await supabase
+            .from('profiles')
+            .select('user_id, display_name, avatar_url')
+            .eq('user_id', newMessage.sender_id)
+            .single();
+
+          const messageWithProfile = {
+            ...newMessage,
+            message_type: (newMessage.message_type || 'text') as 'text' | 'image' | 'file',
+            profiles: senderProfile
+          };
+
+          // Update messages if this message belongs to the active conversation
+          setMessages(prev => {
+            // Check if we're viewing the conversation this message belongs to
+            const isActiveConversation = prev.length > 0 && prev[0].conversation_id === newMessage.conversation_id;
+            if (isActiveConversation || prev.length === 0) {
+              // Only add if not already present
+              if (!prev.find(m => m.id === newMessage.id)) {
+                return [...prev, messageWithProfile];
+              }
+            }
+            return prev;
+          });
+
           // Update conversation list to show latest message
           fetchConversations();
         }

@@ -16,9 +16,14 @@ interface UpdatedLayoutProps {
 }
 
 export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
-  const { conversations, messages, sendMessage, setActiveConversation } = useMessages();
+  const { 
+    conversations, 
+    messages, 
+    sendMessage, 
+    setActiveConversation, 
+    activeConversation: activeConversationFromHook 
+  } = useMessages();
   const { profile } = useProfile();
-  const [activeConversation, setActiveConversationLocal] = useState<string>('');
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,16 +43,15 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   };
 
   const handleConversationClick = (conversationId: string) => {
-    setActiveConversationLocal(conversationId);
     setActiveConversation(conversationId);
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    searchTerm === ''
-  );
+  const filteredConversations = conversations.filter(conv => {
+    const searchName = conv.participant_profile?.display_name || conv.title || '';
+    return searchName.toLowerCase().includes(searchTerm.toLowerCase()) || searchTerm === '';
+  });
 
-  const activeConv = conversations.find(c => c.id === activeConversation);
+  const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
   return (
     <div className="flex h-screen bg-background">
@@ -95,7 +99,7 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
               <Card
                 key={conversation.id}
                 className={`p-3 cursor-pointer mb-2 transition-colors hover:bg-sidebar-hover ${
-                  activeConversation === conversation.id ? 'bg-telegram-blue text-white' : 'bg-transparent'
+                  activeConversationFromHook === conversation.id ? 'bg-telegram-blue text-white' : 'bg-transparent'
                 }`}
                 onClick={() => handleConversationClick(conversation.id)}
               >
@@ -140,7 +144,7 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
-        {activeConversation ? (
+        {activeConversationFromHook ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b border-border bg-card">
@@ -165,7 +169,9 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages.map((message) => (
+                {messages
+                  .filter(message => message.conversation_id === activeConversationFromHook)
+                  .map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${
