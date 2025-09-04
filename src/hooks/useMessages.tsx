@@ -38,10 +38,19 @@ export const useMessages = () => {
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<{ display_name?: string; avatar_url?: string } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
+      // Fetch user's own profile
+      supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => setUserProfile(data));
+        
       fetchConversations();
       const cleanup = setupRealtimeSubscription();
       return cleanup;
@@ -170,6 +179,25 @@ export const useMessages = () => {
   const sendMessage = async (content: string, messageType: 'text' | 'image' | 'file' = 'text', fileUrl?: string) => {
     if (!user || !activeConversation) return;
 
+    // Create optimistic message for immediate UI update
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      content,
+      sender_id: user.id,
+      conversation_id: activeConversation,
+      created_at: new Date().toISOString(),
+      message_type: messageType as 'text' | 'image' | 'file',
+      file_url: fileUrl,
+      profiles: {
+        user_id: user.id,
+        display_name: userProfile?.display_name || '',
+        avatar_url: userProfile?.avatar_url || null
+      }
+    };
+
+    // Add optimistic message to UI immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
       const { error } = await supabase
         .from('messages')
@@ -182,13 +210,18 @@ export const useMessages = () => {
         });
 
       if (error) {
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
         toast({
           title: "Error",
           description: "Failed to send message",
           variant: "destructive",
         });
       }
+      // No need to refetch - real-time subscription will handle updates
     } catch (error) {
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
       toast({
         title: "Error",
         description: "Failed to send message",
@@ -255,34 +288,59 @@ export const useMessages = () => {
         async (payload) => {
           const newMessage = payload.new as Message;
           
-          // Fetch the sender's profile for the new message
-          const { data: senderProfile } = await supabase
-            .from('profiles')
-            .select('user_id, display_name, avatar_url')
-            .eq('user_id', newMessage.sender_id)
-            .single();
-
-          const messageWithProfile = {
-            ...newMessage,
-            message_type: (newMessage.message_type || 'text') as 'text' | 'image' | 'file',
-            profiles: senderProfile
-          };
-
           // Update messages if this message belongs to the active conversation
           setMessages(prev => {
+            // Remove any optimistic message with temp ID first
+            const filteredMessages = prev.filter(msg => !msg.id.toString().startsWith('temp-'));
+            
             // Check if we're viewing the conversation this message belongs to
-            const isActiveConversation = prev.length > 0 && prev[0].conversation_id === newMessage.conversation_id;
-            if (isActiveConversation || prev.length === 0) {
+            const isActiveConversation = activeConversation === newMessage.conversation_id;
+            if (isActiveConversation) {
               // Only add if not already present
-              if (!prev.find(m => m.id === newMessage.id)) {
-                return [...prev, messageWithProfile];
+              if (!filteredMessages.find(m => m.id === newMessage.id)) {
+                // Fetch sender profile if we don't have it
+                const existingProfile = filteredMessages.find(msg => msg.sender_id === newMessage.sender_id)?.profiles;
+                
+                if (existingProfile) {
+                  return [...filteredMessages, {
+                    ...newMessage,
+                    message_type: (newMessage.message_type || 'text') as 'text' | 'image' | 'file',
+                    profiles: existingProfile
+                  }];
+                } else {
+                  // Fetch profile and update later
+                  supabase
+                    .from('profiles')
+                    .select('user_id, display_name, avatar_url')
+                    .eq('user_id', newMessage.sender_id)
+                    .single()
+                    .then(({ data: senderProfile }) => {
+                      if (senderProfile) {
+                        setMessages(currentMessages => 
+                          currentMessages.map(msg => 
+                            msg.id === newMessage.id 
+                              ? { ...msg, profiles: senderProfile }
+                              : msg
+                          )
+                        );
+                      }
+                    });
+                  
+                  return [...filteredMessages, {
+                    ...newMessage,
+                    message_type: (newMessage.message_type || 'text') as 'text' | 'image' | 'file',
+                    profiles: undefined
+                  }];
+                }
               }
             }
-            return prev;
+            return filteredMessages;
           });
 
-          // Update conversation list to show latest message
-          fetchConversations();
+          // Only update conversation list occasionally to reduce API calls
+          if (Math.random() < 0.2) { // 20% chance to reduce server load
+            fetchConversations();
+          }
         }
       )
       .subscribe();
