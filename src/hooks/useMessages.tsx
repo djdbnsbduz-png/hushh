@@ -296,6 +296,8 @@ export const useMessages = () => {
     if (!user) return;
 
     try {
+      console.log('Starting conversation with:', participantUserId, participantName);
+      
       // First, check if a DM conversation already exists between these two users
       const { data: existingConversations, error: fetchError } = await supabase
         .from('conversation_participants')
@@ -305,7 +307,10 @@ export const useMessages = () => {
         `)
         .eq('user_id', user.id);
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error fetching existing conversations:', fetchError);
+        throw fetchError;
+      }
 
       // Check each conversation to see if it's a DM with the target user
       for (const convData of existingConversations || []) {
@@ -331,6 +336,7 @@ export const useMessages = () => {
       }
 
       // No existing conversation found, create a new one
+      console.log('Creating new conversation...');
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
         .insert({
@@ -340,9 +346,15 @@ export const useMessages = () => {
         .select()
         .single();
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Error creating conversation:', convError);
+        throw convError;
+      }
+
+      console.log('Created conversation:', conversation);
 
       // Add both users as participants
+      console.log('Adding participants:', [user.id, participantUserId]);
       const { error: participantsError } = await supabase
         .from('conversation_participants')
         .insert([
@@ -350,7 +362,10 @@ export const useMessages = () => {
           { conversation_id: conversation.id, user_id: participantUserId }
         ]);
 
-      if (participantsError) throw participantsError;
+      if (participantsError) {
+        console.error('Error adding participants:', participantsError);
+        throw participantsError;
+      }
 
       // Refresh conversations and set as active
       setActiveConversation(conversation.id);
