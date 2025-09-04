@@ -293,7 +293,13 @@ export const useMessages = () => {
   };
 
   const startNewConversation = async (participantUserId: string, participantName: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error('No user found - not authenticated');
+      return;
+    }
+
+    console.log('User authenticated:', user.id);
+    console.log('Auth status:', !!user);
 
     try {
       console.log('Starting conversation with:', participantUserId, participantName);
