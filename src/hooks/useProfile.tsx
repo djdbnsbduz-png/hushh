@@ -51,11 +51,11 @@ export const useProfile = () => {
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return;
+    if (!user) return false;
 
     try {
       // Check if username is being updated and if it's already taken
-      if (updates.username) {
+      if (updates.username && updates.username !== profile?.username) {
         const { data: isAvailable, error: availabilityError } = await supabase.rpc(
           'check_username_availability',
           { check_username: updates.username.toLowerCase() }
@@ -67,7 +67,7 @@ export const useProfile = () => {
             description: "Failed to check username availability",
             variant: "destructive",
           });
-          return;
+          return false;
         }
 
         if (!isAvailable) {
@@ -76,7 +76,7 @@ export const useProfile = () => {
             description: "This username is already taken. Please choose another one.",
             variant: "destructive",
           });
-          return;
+          return false;
         }
       }
 
@@ -99,12 +99,14 @@ export const useProfile = () => {
             variant: "destructive",
           });
         }
+        return false;
       } else {
         setProfile(prev => prev ? { ...prev, ...updates } : null);
         toast({
           title: "Success",
           description: "Profile updated successfully",
         });
+        return true;
       }
     } catch (error) {
       toast({
@@ -112,6 +114,7 @@ export const useProfile = () => {
         description: "Failed to update profile",
         variant: "destructive",
       });
+      return false;
     }
   };
 

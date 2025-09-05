@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,18 +20,33 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [displayName, setDisplayName] = useState(profile?.display_name || '');
-  const [username, setUsername] = useState(profile?.username || '');
-  const [bio, setBio] = useState(profile?.bio || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [phone, setPhone] = useState('');
+
+  // Update form fields when profile data changes or modal opens
+  useEffect(() => {
+    if (open && profile) {
+      setDisplayName(profile.display_name || '');
+      setUsername(profile.username || '');
+      setBio(profile.bio || '');
+      setPhone(profile.phone || '');
+    }
+  }, [open, profile]);
 
   const handleSaveProfile = async () => {
-    await updateProfile({
+    const success = await updateProfile({
       display_name: displayName,
       username,
       bio,
       phone,
     });
+    
+    // Close modal on successful save
+    if (success !== false) {
+      onOpenChange(false);
+    }
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
