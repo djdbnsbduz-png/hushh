@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -65,24 +65,28 @@ export const useMessages = () => {
     }
   }, [activeConversation]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
+    if (!user?.id) return;
+    
     try {
-      // First get conversations where user is a participant
-      const { data: participantData, error: partError } = await supabase
+      // Optimized single query with joins to reduce API calls
+      const { data, error } = await supabase
         .from('conversation_participants')
         .select(`
           conversation_id,
-          conversations!inner(*)
+          conversations!inner(
+            id, title, is_group, avatar_url, created_at, updated_at
+          )
         `)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (partError) {
-        console.error('Error fetching conversations:', partError);
+      if (error) {
+        console.error('Error fetching conversations:', error);
         return;
       }
 
-      // Extract unique conversations and enrich DMs with participant info
-      const uniqueConversations = participantData?.reduce((acc, item) => {
+      // Extract unique conversations
+      const uniqueConversations = data?.reduce((acc, item) => {
         const conv = item.conversations;
         if (conv && !acc.find(c => c.id === conv.id)) {
           acc.push(conv);
@@ -90,38 +94,44 @@ export const useMessages = () => {
         return acc;
       }, [] as any[]) || [];
 
-      // For DM conversations, get the other participant's profile info
-      const enrichedConversations = await Promise.all(
-        uniqueConversations.map(async (conversation) => {
-          if (!conversation.is_group) {
-            // Get the other participant
-            const { data: participants } = await supabase
-              .from('conversation_participants')
-              .select('user_id')
-              .eq('conversation_id', conversation.id)
-              .neq('user_id', user?.id);
+      // Batch fetch profiles for all DM conversations
+      const dmConversations = uniqueConversations.filter(c => !c.is_group);
+      const conversationIds = dmConversations.map(c => c.id);
+      
+      let profilesMap = new Map();
+      if (conversationIds.length > 0) {
+        // Single query to get all other participants and their profiles
+        const { data: participantsWithProfiles } = await supabase
+          .from('conversation_participants')
+          .select(`
+            conversation_id,
+            user_id,
+            profiles!inner(display_name, username, avatar_url, user_id)
+          `)
+          .in('conversation_id', conversationIds)
+          .neq('user_id', user.id);
 
-            if (participants && participants.length > 0) {
-              const otherUserId = participants[0].user_id;
-              
-              // Get their profile
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('display_name, username, avatar_url, user_id')
-                .eq('user_id', otherUserId)
-                .single();
-
-              if (profile) {
-                return {
-                  ...conversation,
-                  participant_profile: profile
-                };
-              }
-            }
+        // Build profiles map for quick lookup
+        participantsWithProfiles?.forEach(item => {
+          if (item.profiles) {
+            profilesMap.set(item.conversation_id, item.profiles);
           }
-          return conversation;
-        })
-      );
+        });
+      }
+
+      // Enrich conversations with profile data
+      const enrichedConversations = uniqueConversations.map(conversation => {
+        if (!conversation.is_group) {
+          const profile = profilesMap.get(conversation.id);
+          if (profile) {
+            return {
+              ...conversation,
+              participant_profile: profile
+            };
+          }
+        }
+        return conversation;
+      });
 
       setConversations(enrichedConversations);
     } catch (error) {
@@ -129,52 +139,48 @@ export const useMessages = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const fetchMessages = async (conversationId: string) => {
+  const fetchMessages = useCallback(async (conversationId: string) => {
     try {
+      // Single optimized query without problematic join
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *
-        `)
+        .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching messages:', error);
-      } else {
-        // Fetch profiles for message senders
-        const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
-        if (senderIds.length > 0) {
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('user_id, display_name, avatar_url')
-            .in('user_id', senderIds);
-
-          const profilesMap = new Map(
-            profilesData?.map(p => [p.user_id, p]) || []
-          );
-
-          const messagesWithProfiles = data?.map(message => ({
-            ...message,
-            message_type: (message.message_type || 'text') as 'text' | 'image' | 'file',
-            profiles: profilesMap.get(message.sender_id)
-          })) || [];
-
-          setMessages(messagesWithProfiles);
-        } else {
-          const typedMessages = data?.map(message => ({
-            ...message,
-            message_type: (message.message_type || 'text') as 'text' | 'image' | 'file'
-          })) || [];
-          setMessages(typedMessages);
-        }
+        return;
       }
+
+      // Get unique sender IDs and fetch profiles in batch
+      const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
+      let profilesMap = new Map();
+      
+      if (senderIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, display_name, avatar_url')
+          .in('user_id', senderIds);
+
+        profilesMap = new Map(
+          profilesData?.map(p => [p.user_id, p]) || []
+        );
+      }
+
+      const messagesWithProfiles = data?.map(message => ({
+        ...message,
+        message_type: (message.message_type || 'text') as 'text' | 'image' | 'file',
+        profiles: profilesMap.get(message.sender_id)
+      })) || [];
+
+      setMessages(messagesWithProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
-  };
+  }, []);
 
   const sendMessage = async (content: string, messageType: 'text' | 'image' | 'file' = 'text', fileUrl?: string) => {
     if (!user || !activeConversation) return;
@@ -337,8 +343,9 @@ export const useMessages = () => {
             return filteredMessages;
           });
 
-          // Only update conversation list occasionally to reduce API calls
-          if (Math.random() < 0.2) { // 20% chance to reduce server load
+          // Update conversations less frequently to improve performance
+          // Only update if it's a message to a conversation we don't have
+          if (!conversations.find(c => c.id === newMessage.conversation_id)) {
             fetchConversations();
           }
         }

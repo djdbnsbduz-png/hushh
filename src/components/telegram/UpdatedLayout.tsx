@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,14 @@ import { SettingsModal } from '@/components/settings/SettingsModal';
 import { Separator } from '@/components/ui/separator';
 import { Search, Send, Settings, Plus, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { ConversationCard } from './ConversationCard';
+import { OptimizedMessageBubble } from './OptimizedMessageBubble';
 
 interface UpdatedLayoutProps {
   onNewChat: () => void;
 }
 
-export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
+const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const { 
     conversations, 
     messages, 
@@ -28,28 +30,39 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (newMessage.trim()) {
       await sendMessage(newMessage.trim());
       setNewMessage('');
     }
-  };
+  }, [newMessage, sendMessage]);
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [handleSendMessage]);
 
-  const handleConversationClick = (conversationId: string) => {
+  const handleConversationClick = useCallback((conversationId: string) => {
     setActiveConversation(conversationId);
-  };
+  }, [setActiveConversation]);
 
-  const filteredConversations = conversations.filter(conv => {
-    const searchName = conv.participant_profile?.display_name || conv.title || '';
-    return searchName.toLowerCase().includes(searchTerm.toLowerCase()) || searchTerm === '';
-  });
+  // Memoize filtered conversations to prevent unnecessary re-renders
+  const filteredConversations = useMemo(() => {
+    if (!searchTerm) return conversations;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return conversations.filter(conv => {
+      const searchName = conv.participant_profile?.display_name || conv.title || '';
+      return searchName.toLowerCase().includes(lowerSearchTerm);
+    });
+  }, [conversations, searchTerm]);
+
+  // Memoize active conversation messages for better performance
+  const activeMessages = useMemo(() => 
+    messages.filter(message => message.conversation_id === activeConversationFromHook),
+    [messages, activeConversationFromHook]
+  );
 
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
@@ -95,41 +108,22 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
         {/* Conversations List */}
         <ScrollArea className="flex-1">
           <div className="p-2">
-            {filteredConversations.map((conversation) => (
-              <Card
-                key={conversation.id}
-                className={`p-3 cursor-pointer mb-2 transition-colors hover:bg-sidebar-hover ${
-                  activeConversationFromHook === conversation.id ? 'bg-telegram-blue text-white' : 'bg-transparent'
-                }`}
-                onClick={() => handleConversationClick(conversation.id)}
-              >
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={conversation.participant_profile?.avatar_url || conversation.avatar_url} />
-                    <AvatarFallback>
-                      {conversation.participant_profile?.display_name?.[0]?.toUpperCase() || 
-                       conversation.title?.[0]?.toUpperCase() || 'C'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-medium truncate">
-                        {conversation.participant_profile?.display_name || 
-                         conversation.title || 'Conversation'}
-                      </h3>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {messages.length > 0 && messages[messages.length - 1]?.conversation_id === conversation.id 
-                        ? messages[messages.length - 1]?.content 
-                        : 'No messages yet'}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            ))}
+            {filteredConversations.map((conversation) => {
+              // Find last message for this conversation
+              const lastMessage = messages
+                .filter(m => m.conversation_id === conversation.id)
+                .pop()?.content;
+              
+              return (
+                <ConversationCard
+                  key={conversation.id}
+                  conversation={conversation}
+                  isActive={activeConversationFromHook === conversation.id}
+                  lastMessage={lastMessage}
+                  onClick={handleConversationClick}
+                />
+              );
+            })}
           </div>
         </ScrollArea>
 
@@ -169,33 +163,12 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {messages
-                  .filter(message => message.conversation_id === activeConversationFromHook)
-                  .map((message) => (
-                  <div
+                {activeMessages.map((message) => (
+                  <OptimizedMessageBubble
                     key={message.id}
-                    className={`flex ${
-                      message.sender_id === profile?.user_id ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        message.sender_id === profile?.user_id
-                          ? 'bg-telegram-blue text-white'
-                          : 'bg-message-received'
-                      }`}
-                    >
-                      {message.sender_id !== profile?.user_id && (
-                        <p className="text-xs font-medium mb-1 text-telegram-blue">
-                          {message.profiles?.display_name || 'Unknown User'}
-                        </p>
-                      )}
-                      <p className="text-sm">{message.content}</p>
-                      <p className="text-xs mt-1 opacity-70">
-                        {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                  </div>
+                    message={message}
+                    isCurrentUser={message.sender_id === profile?.user_id}
+                  />
                 ))}
               </div>
             </ScrollArea>
@@ -237,3 +210,5 @@ export const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     </div>
   );
 };
+
+export default memo(UpdatedLayout);

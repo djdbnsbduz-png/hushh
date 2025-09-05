@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UpdatedLayout } from './UpdatedLayout';
+import UpdatedLayout from './UpdatedLayout';
 import { NewChatScreen } from '@/components/chat/NewChatScreen';
 
 export interface Contact {
@@ -13,7 +13,7 @@ export interface Contact {
   isTyping?: boolean;
 }
 
-export interface Message {
+export interface ChatMessage {
   id: string;
   content: string;
   timestamp: string;
