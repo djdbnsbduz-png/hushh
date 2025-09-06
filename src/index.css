@@ -73,9 +73,67 @@
     --radius-sm: 0.5rem;
     --radius-lg: 1rem;
 
+    /* Customizable properties */
+    --sidebar-width: 320px;
+    --message-border-radius: 0.75rem;
+    --base-font-size: 1rem;
+
     /* Animations */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .light {
+    /* Light theme overrides */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+
+    --telegram-blue: 217 91% 60%;
+    --telegram-blue-light: 217 91% 70%;
+    --telegram-blue-dark: 217 91% 50%;
+    
+    --message-sent: 217 91% 60%;
+    --message-sent-foreground: 0 0% 100%;
+    --message-received: 0 0% 95%;
+    --message-received-foreground: 0 0% 3.9%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 3.9%;
+    --sidebar-accent: 217 91% 60%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 89.8%;
+    --sidebar-hover: 0 0% 95%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --card-border: 0 0% 89.8%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 70%;
+
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 45.1%;
+
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+
+    --input: 0 0% 100%;
+    --input-border: 0 0% 89.8%;
+    --input-ring: 217 91% 60%;
+
+    --online: 142 76% 36%;
+    --typing: 45 93% 47%;
+    --read: 217 91% 60%;
+
+    --gradient-telegram: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --gradient-message: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 50%));
+    --gradient-bg: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -4px hsl(0 0% 0% / 0.1);
+    --shadow-chat: 0 1px 3px 0 hsl(0 0% 0% / 0.1);
   }
 
   .dark {

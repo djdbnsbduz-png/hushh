@@ -13,6 +13,17 @@ interface Profile {
   phone?: string;
   created_at: string;
   updated_at: string;
+  customization?: {
+    theme: 'light' | 'dark' | 'auto';
+    font_family: string;
+    font_size: 'small' | 'medium' | 'large';
+    background_type: 'default' | 'gradient' | 'image' | 'color';
+    background_value: string | null;
+    accent_color: string;
+    message_bubble_style: 'rounded' | 'square' | 'minimal';
+    sidebar_width: 'narrow' | 'normal' | 'wide';
+    custom_css: string | null;
+  };
 }
 
 export const useProfile = () => {
@@ -41,7 +52,12 @@ export const useProfile = () => {
       if (error) {
         console.error('Error fetching profile:', error);
       } else {
-        setProfile(data);
+        // Handle the JSONB customization field properly
+        const profileData = {
+          ...data,
+          customization: data.customization ? (typeof data.customization === 'string' ? JSON.parse(data.customization) : data.customization) : undefined
+        } as Profile;
+        setProfile(profileData);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);

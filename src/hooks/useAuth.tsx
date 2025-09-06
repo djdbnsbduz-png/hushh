@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomizationProvider } from './useCustomization';
 
 interface AuthContextType {
   user: User | null;
@@ -66,7 +67,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      <CustomizationProvider>
+        {children}
+      </CustomizationProvider>
     </AuthContext.Provider>
   );
 };
