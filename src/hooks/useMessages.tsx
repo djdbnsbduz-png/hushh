@@ -294,14 +294,13 @@ export const useMessages = () => {
         async (payload) => {
           const newMessage = payload.new as Message;
           
-          // Update messages if this message belongs to the active conversation
+          // Update messages immediately if this message belongs to the active conversation
           setMessages(prev => {
             // Remove any optimistic message with temp ID first
             const filteredMessages = prev.filter(msg => !msg.id.toString().startsWith('temp-'));
             
-            // Check if we're viewing the conversation this message belongs to
-            const isActiveConversation = activeConversation === newMessage.conversation_id;
-            if (isActiveConversation) {
+            // Always add the new message if it belongs to the active conversation
+            if (activeConversation === newMessage.conversation_id) {
               // Only add if not already present
               if (!filteredMessages.find(m => m.id === newMessage.id)) {
                 // Fetch sender profile if we don't have it
@@ -343,11 +342,8 @@ export const useMessages = () => {
             return filteredMessages;
           });
 
-          // Update conversations less frequently to improve performance
-          // Only update if it's a message to a conversation we don't have
-          if (!conversations.find(c => c.id === newMessage.conversation_id)) {
-            fetchConversations();
-          }
+          // Update conversations to reflect new message activity
+          fetchConversations();
         }
       )
       .subscribe();
