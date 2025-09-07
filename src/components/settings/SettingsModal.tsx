@@ -32,8 +32,6 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [phone, setPhone] = useState('');
-  const [backgroundUrl, setBackgroundUrl] = useState('');
-  const [customCss, setCustomCss] = useState('');
 
   // Update form fields when profile data changes or modal opens
   useEffect(() => {
@@ -44,14 +42,6 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       setPhone(profile.phone || '');
     }
   }, [open, profile]);
-
-  // Update customization fields when settings change
-  useEffect(() => {
-    if (open) {
-      setCustomCss(settings.custom_css || '');
-      setBackgroundUrl(settings.background_value || '');
-    }
-  }, [open, settings]);
 
   const handleSaveProfile = async () => {
     const success = await updateProfile({
@@ -79,7 +69,6 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
     if (file) {
       // For now, we'll use a placeholder URL. In a real app, you'd upload to storage
       const url = URL.createObjectURL(file);
-      setBackgroundUrl(url);
       await updateCustomization({
         background_type: 'image',
         background_value: url,
@@ -89,8 +78,6 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
 
   const handleResetCustomization = async () => {
     await resetToDefaults();
-    setCustomCss('');
-    setBackgroundUrl('');
   };
 
   const handleSignOut = async () => {
@@ -373,9 +360,8 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                   <div className="space-y-2">
                     <Label>Gradient CSS</Label>
                     <Input
-                      value={backgroundUrl}
-                      onChange={(e) => setBackgroundUrl(e.target.value)}
-                      onBlur={() => updateCustomization({ background_value: backgroundUrl })}
+                      value={settings.background_value || ''}
+                      onChange={(e) => updateCustomization({ background_value: e.target.value })}
                       placeholder="linear-gradient(45deg, #ff6b6b, #4ecdc4)"
                     />
                   </div>
@@ -402,9 +388,8 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                       />
                     </div>
                     <Input
-                      value={backgroundUrl}
-                      onChange={(e) => setBackgroundUrl(e.target.value)}
-                      onBlur={() => updateCustomization({ background_value: backgroundUrl })}
+                      value={settings.background_value || ''}
+                      onChange={(e) => updateCustomization({ background_value: e.target.value })}
                       placeholder="Or enter image URL"
                     />
                   </div>
@@ -488,9 +473,8 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                 <div className="space-y-2">
                   <Label>Custom CSS Code</Label>
                   <Textarea
-                    value={customCss}
-                    onChange={(e) => setCustomCss(e.target.value)}
-                    onBlur={() => updateCustomization({ custom_css: customCss })}
+                    value={settings.custom_css || ''}
+                    onChange={(e) => updateCustomization({ custom_css: e.target.value })}
                     placeholder="/* Enter your custom CSS here */
 body { background: linear-gradient(45deg, #ff6b6b, #4ecdc4); }
 .message-bubble { border-radius: 20px; }"
