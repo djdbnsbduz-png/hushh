@@ -156,6 +156,19 @@ export type Database = {
         Args: { check_username: string }
         Returns: boolean
       }
+      get_profile_for_conversation: {
+        Args: { target_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_safe_profile_view: {
         Args: { target_user_id: string }
         Returns: {
