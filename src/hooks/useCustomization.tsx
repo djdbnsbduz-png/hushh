@@ -11,6 +11,11 @@ interface CustomizationSettings {
   message_bubble_style: 'rounded' | 'square' | 'minimal';
   sidebar_width: 'narrow' | 'normal' | 'wide';
   custom_css: string | null;
+  border_radius: 'none' | 'small' | 'medium' | 'large';
+  card_shadow: 'none' | 'small' | 'medium' | 'large';
+  spacing: 'compact' | 'normal' | 'spacious';
+  animation_speed: 'none' | 'fast' | 'normal' | 'slow';
+  hover_effects: boolean;
 }
 
 interface CustomizationContextType {
@@ -30,6 +35,11 @@ const defaultSettings: CustomizationSettings = {
   message_bubble_style: 'rounded',
   sidebar_width: 'normal',
   custom_css: null,
+  border_radius: 'medium',
+  card_shadow: 'medium',
+  spacing: 'normal',
+  animation_speed: 'normal',
+  hover_effects: true,
 };
 
 const CustomizationContext = createContext<CustomizationContextType>({
@@ -139,6 +149,44 @@ export const CustomizationProvider = ({ children }: CustomizationProviderProps) 
     };
     root.style.setProperty('--sidebar-width', sidebarWidthMap[settings.sidebar_width]);
     
+    // Apply border radius
+    const borderRadiusMap = {
+      none: '0',
+      small: '0.25rem',
+      medium: '0.5rem',
+      large: '1rem',
+    };
+    root.style.setProperty('--global-border-radius', borderRadiusMap[settings.border_radius]);
+    
+    // Apply card shadows
+    const shadowMap = {
+      none: 'none',
+      small: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      medium: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      large: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+    };
+    root.style.setProperty('--card-shadow', shadowMap[settings.card_shadow]);
+    
+    // Apply spacing
+    const spacingMap = {
+      compact: '0.75',
+      normal: '1',
+      spacious: '1.5',
+    };
+    root.style.setProperty('--spacing-scale', spacingMap[settings.spacing]);
+    
+    // Apply animation speed
+    const animationSpeedMap = {
+      none: '0s',
+      fast: '0.15s',
+      normal: '0.3s',
+      slow: '0.5s',
+    };
+    root.style.setProperty('--animation-duration', animationSpeedMap[settings.animation_speed]);
+    
+    // Apply hover effects
+    root.style.setProperty('--hover-scale', settings.hover_effects ? '1.05' : '1');
+    
     // Apply custom CSS
     if (settings.custom_css) {
       let customStyleElement = document.getElementById('custom-user-styles');
@@ -181,6 +229,11 @@ export const CustomizationProvider = ({ children }: CustomizationProviderProps) 
     root.style.removeProperty('--background-custom');
     root.style.removeProperty('--message-border-radius');
     root.style.removeProperty('--sidebar-width');
+    root.style.removeProperty('--global-border-radius');
+    root.style.removeProperty('--card-shadow');
+    root.style.removeProperty('--spacing-scale');
+    root.style.removeProperty('--animation-duration');
+    root.style.removeProperty('--hover-scale');
     
     document.body.style.fontFamily = '';
     document.body.style.backgroundColor = '';

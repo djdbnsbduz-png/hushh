@@ -13,8 +13,9 @@ import { Switch } from '@/components/ui/switch';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomization } from '@/hooks/useCustomization';
-import { Camera, LogOut, User, Palette, Type, Image as ImageIcon, Settings2, RotateCcw } from 'lucide-react';
+import { Camera, LogOut, User, Palette, Type, Image as ImageIcon, Settings2, RotateCcw, Smile, Layout } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
 
 interface SettingsModalProps {
   open: boolean;
@@ -122,7 +123,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
         </DialogHeader>
         
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Profile
@@ -131,9 +132,17 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
               <Palette className="h-4 w-4 mr-2" />
               Theme
             </TabsTrigger>
+            <TabsTrigger value="layout">
+              <Layout className="h-4 w-4 mr-2" />
+              Layout
+            </TabsTrigger>
             <TabsTrigger value="typography">
               <Type className="h-4 w-4 mr-2" />
               Typography
+            </TabsTrigger>
+            <TabsTrigger value="emojis">
+              <Smile className="h-4 w-4 mr-2" />
+              Emojis
             </TabsTrigger>
             <TabsTrigger value="advanced">
               <Settings2 className="h-4 w-4 mr-2" />
@@ -398,6 +407,111 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
             </Card>
           </TabsContent>
 
+          {/* Layout Tab */}
+          <TabsContent value="layout" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Page Layout</CardTitle>
+                <CardDescription>Customize the overall page layout and spacing</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Border Radius</Label>
+                  <Select 
+                    value={settings.border_radius} 
+                    onValueChange={(value: 'none' | 'small' | 'medium' | 'large') => 
+                      updateCustomization({ border_radius: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None (Sharp Corners)</SelectItem>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large (Very Rounded)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Card Shadows</Label>
+                  <Select 
+                    value={settings.card_shadow} 
+                    onValueChange={(value: 'none' | 'small' | 'medium' | 'large') => 
+                      updateCustomization({ card_shadow: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Shadow (Flat)</SelectItem>
+                      <SelectItem value="small">Subtle</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Strong</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Spacing</Label>
+                  <Select 
+                    value={settings.spacing} 
+                    onValueChange={(value: 'compact' | 'normal' | 'spacious') => 
+                      updateCustomization({ spacing: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="compact">Compact (Dense)</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="spacious">Spacious (Airy)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Animation Speed</Label>
+                  <Select 
+                    value={settings.animation_speed} 
+                    onValueChange={(value: 'none' | 'fast' | 'normal' | 'slow') => 
+                      updateCustomization({ animation_speed: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No Animations</SelectItem>
+                      <SelectItem value="fast">Fast</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="slow">Slow (Smooth)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Hover Effects</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Enable subtle scale animations on hover
+                    </p>
+                  </div>
+                  <Switch
+                    checked={settings.hover_effects}
+                    onCheckedChange={(checked) => 
+                      updateCustomization({ hover_effects: checked })
+                    }
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Typography Tab */}
           <TabsContent value="typography" className="space-y-6">
             <Card>
@@ -458,6 +572,36 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                     Make sure the font is installed on your system or loaded via CSS
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Emojis Tab */}
+          <TabsContent value="emojis" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Emoji Picker</CardTitle>
+                <CardDescription>Browse and copy Apple-style emojis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData) => {
+                      navigator.clipboard.writeText(emojiData.emoji);
+                    }}
+                    emojiStyle={EmojiStyle.APPLE}
+                    theme={settings.theme === 'dark' ? Theme.DARK : Theme.LIGHT}
+                    width="100%"
+                    height="400px"
+                    searchPlaceHolder="Search emojis..."
+                    previewConfig={{
+                      showPreview: true,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Click any emoji to copy it to your clipboard
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

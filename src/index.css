@@ -78,6 +78,13 @@
     --message-border-radius: 0.75rem;
     --base-font-size: 1rem;
 
+    /* Custom variables for page customization */
+    --global-border-radius: 0.5rem;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --spacing-scale: 1;
+    --animation-duration: 0.3s;
+    --hover-scale: 1.05;
+
     /* Animations */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -209,6 +216,32 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     background: hsl(var(--background));
+    font-size: var(--base-font-size, 1rem);
+  }
+
+  /* Apply custom spacing scale to common spacing utilities */
+  .space-y-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(0.25rem * var(--spacing-scale));
+  }
+
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(0.5rem * var(--spacing-scale));
+  }
+
+  .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(1rem * var(--spacing-scale));
+  }
+
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: calc(1.5rem * var(--spacing-scale));
+  }
+
+  /* Apply hover effects with custom scale */
+  button:not(:disabled):hover, 
+  a:hover, 
+  [role="button"]:hover {
+    transform: scale(var(--hover-scale));
+    transition-duration: var(--animation-duration);
   }
 
   /* Custom scrollbars */
