@@ -149,50 +149,38 @@ export type Database = {
       }
     }
     Views: {
-      profiles_safe: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string | null
-          customization: Json | null
-          display_name: string | null
-          id: string | null
-          phone: string | null
-          updated_at: string | null
-          user_id: string | null
-          username: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          customization?: Json | null
-          display_name?: string | null
-          id?: string | null
-          phone?: never
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          customization?: Json | null
-          display_name?: string | null
-          id?: string | null
-          phone?: never
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_username_availability: {
         Args: { check_username: string }
         Returns: boolean
+      }
+      get_conversation_profile: {
+        Args: { target_user_id: string }
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
+      }
+      get_conversation_profiles: {
+        Args: { user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
       }
       get_profile_for_conversation_safe: {
         Args: { target_user_id: string }

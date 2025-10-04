@@ -100,23 +100,34 @@ export const useMessages = () => {
       
       let profilesMap = new Map();
       if (conversationIds.length > 0) {
-        // Single query to get all other participants and their profiles
-        const { data: participantsWithProfiles } = await supabase
+        // Get all other participants first
+        const { data: participants } = await supabase
           .from('conversation_participants')
-          .select(`
-            conversation_id,
-            user_id,
-            profiles!inner(display_name, username, avatar_url, user_id)
-          `)
+          .select('conversation_id, user_id')
           .in('conversation_id', conversationIds)
           .neq('user_id', user.id);
 
-        // Build profiles map for quick lookup
-        participantsWithProfiles?.forEach(item => {
-          if (item.profiles) {
-            profilesMap.set(item.conversation_id, item.profiles);
-          }
-        });
+        // Get unique user IDs
+        const userIds = [...new Set(participants?.map(p => p.user_id) || [])];
+        
+        if (userIds.length > 0) {
+          // Use secure RPC function to fetch profiles (excludes phone numbers)
+          const { data: profiles } = await supabase
+            .rpc('get_conversation_profiles', { user_ids: userIds });
+
+          // Build profile lookup map
+          const profilesByUserId = new Map(
+            profiles?.map(p => [p.user_id, p]) || []
+          );
+
+          // Map profiles to conversations
+          participants?.forEach(item => {
+            const profile = profilesByUserId.get(item.user_id);
+            if (profile && !profilesMap.has(item.conversation_id)) {
+              profilesMap.set(item.conversation_id, profile);
+            }
+          });
+        }
       }
 
       // Enrich conversations with profile data
@@ -155,15 +166,14 @@ export const useMessages = () => {
         return;
       }
 
-      // Get unique sender IDs and fetch profiles in batch
+      // Get unique sender IDs and fetch profiles in batch using secure RPC
       const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
       let profilesMap = new Map();
       
       if (senderIds.length > 0) {
+        // Use secure RPC function that excludes phone numbers
         const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('user_id, display_name, avatar_url')
-          .in('user_id', senderIds);
+          .rpc('get_conversation_profiles', { user_ids: senderIds });
 
         profilesMap = new Map(
           profilesData?.map(p => [p.user_id, p]) || []
