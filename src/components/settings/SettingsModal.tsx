@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { useProfile } from '@/hooks/useProfile';
+import { usePhoneNumber } from '@/hooks/usePhoneNumber';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomization } from '@/hooks/useCustomization';
 import { Camera, LogOut, User, Palette, Type, Image as ImageIcon, Settings2, RotateCcw, Smile, Layout } from 'lucide-react';
@@ -24,6 +25,7 @@ interface SettingsModalProps {
 
 export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { profile, updateProfile, uploadAvatar } = useProfile();
+  const { phoneNumber, updatePhoneNumber } = usePhoneNumber();
   const { signOut } = useAuth();
   const { settings, updateCustomization, resetToDefaults } = useCustomization();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,20 +42,27 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       setDisplayName(profile.display_name || '');
       setUsername(profile.username || '');
       setBio(profile.bio || '');
-      setPhone(profile.phone || '');
     }
   }, [open, profile]);
 
+  // Update phone field when phone data changes
+  useEffect(() => {
+    if (open) {
+      setPhone(phoneNumber || '');
+    }
+  }, [open, phoneNumber]);
+
   const handleSaveProfile = async () => {
-    const success = await updateProfile({
+    const profileSuccess = await updateProfile({
       display_name: displayName,
       username,
       bio,
-      phone,
     });
     
+    const phoneSuccess = await updatePhoneNumber(phone || null);
+    
     // Close modal on successful save
-    if (success !== false) {
+    if (profileSuccess !== false && phoneSuccess !== false) {
       onOpenChange(false);
     }
   };

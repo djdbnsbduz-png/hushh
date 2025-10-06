@@ -10,7 +10,6 @@ interface Profile {
   username: string;
   avatar_url?: string;
   bio?: string;
-  phone?: string;
   created_at: string;
   updated_at: string;
   customization?: {
