@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { profileUpdateSchema, validateImageFile } from '@/lib/validation';
 
 interface Profile {
   id: string;
@@ -69,11 +70,26 @@ export const useProfile = () => {
     if (!user) return false;
 
     try {
+      // Validate the updates
+      const validationResult = profileUpdateSchema.safeParse(updates);
+      
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: "Validation Error",
+          description: firstError.message,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const validatedUpdates = validationResult.data;
+
       // Check if username is being updated and if it's already taken
-      if (updates.username && updates.username !== profile?.username) {
+      if (validatedUpdates.username && validatedUpdates.username !== profile?.username) {
         const { data: isAvailable, error: availabilityError } = await supabase.rpc(
           'check_username_availability',
-          { check_username: updates.username.toLowerCase() }
+          { check_username: validatedUpdates.username }
         );
 
         if (availabilityError) {
@@ -97,7 +113,7 @@ export const useProfile = () => {
 
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(validatedUpdates)
         .eq('user_id', user.id);
 
       if (error) {
@@ -116,7 +132,7 @@ export const useProfile = () => {
         }
         return false;
       } else {
-        setProfile(prev => prev ? { ...prev, ...updates } : null);
+        setProfile(prev => prev ? { ...prev, ...validatedUpdates } : null);
         toast({
           title: "Success",
           description: "Profile updated successfully",
@@ -137,12 +153,26 @@ export const useProfile = () => {
     if (!user) return;
 
     try {
-      const fileExt = file.name.split('.').pop();
+      // Validate the file before uploading
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        toast({
+          title: "Invalid File",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
       const fileName = `${user.id}/avatar.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { 
+          upsert: true,
+          contentType: file.type 
+        });
 
       if (uploadError) {
         throw uploadError;

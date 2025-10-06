@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { signUpSchema, emailSchema, passwordSchema } from '@/lib/validation';
 
 export const AuthPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -76,40 +77,34 @@ export const AuthPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim()) {
+    // Validate all inputs using Zod schema
+    const validationResult = signUpSchema.safeParse({
+      email: email.trim(),
+      password,
+      confirmPassword,
+      username: username.trim(),
+      displayName: displayName.trim() || undefined,
+      phone: phone.trim() || undefined,
+    });
+
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: "Email Required",
-        description: "Please enter an email address",
+        title: "Validation Error",
+        description: firstError.message,
         variant: "destructive",
       });
       return;
     }
 
-    if (password !== confirmPassword) {
-      toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!username.trim()) {
-      toast({
-        title: "Username Required",
-        description: "Please enter a username",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    const validatedData = validationResult.data;
     setIsLoading(true);
 
     try {
-      // Check username availability
+      // Check username availability (already lowercased by validation)
       const { data: isAvailable, error: availabilityError } = await supabase.rpc(
         'check_username_availability',
-        { check_username: username.toLowerCase() }
+        { check_username: validatedData.username }
       );
 
       if (availabilityError) {
@@ -132,16 +127,16 @@ export const AuthPage = () => {
         return;
       }
 
-      // Sign up user with email
+      // Sign up user with validated data
       const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            display_name: displayName || username,
-            username: username.toLowerCase(),
-            phone: phone || null,
+            display_name: validatedData.displayName || validatedData.username,
+            username: validatedData.username,
+            phone: validatedData.phone || null,
           }
         }
       });
