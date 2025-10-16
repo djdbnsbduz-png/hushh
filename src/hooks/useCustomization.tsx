@@ -118,19 +118,28 @@ export const CustomizationProvider = ({ children }: CustomizationProviderProps) 
     if (settings.background_type !== 'default' && settings.background_value) {
       switch (settings.background_type) {
         case 'color':
-          root.style.setProperty('--background-custom', settings.background_value);
+          // Convert color to HSL for the CSS variable
+          const hslColor = settings.background_value.startsWith('#') 
+            ? hexToHsl(settings.background_value) 
+            : settings.background_value;
+          root.style.setProperty('--background', hslColor);
           document.body.style.backgroundColor = settings.background_value;
           break;
         case 'gradient':
           document.body.style.background = settings.background_value;
+          root.style.setProperty('--background', '0 0% 0%'); // Set to transparent for gradients
           break;
         case 'image':
           document.body.style.backgroundImage = `url(${settings.background_value})`;
           document.body.style.backgroundSize = 'cover';
           document.body.style.backgroundPosition = 'center';
           document.body.style.backgroundAttachment = 'fixed';
+          root.style.setProperty('--background', '0 0% 0%'); // Set to transparent for images
           break;
       }
+    } else {
+      // Reset to default when background type is default
+      root.style.removeProperty('--background');
     }
     
     // Apply message bubble style
