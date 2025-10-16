@@ -137,7 +137,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                     <MoreHorizontal className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-black border-border">
                   <DropdownMenuLabel>Account Options</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
