@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, memo } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -8,10 +9,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { SettingsModal } from '@/components/settings/SettingsModal';
 import { Separator } from '@/components/ui/separator';
-import { Search, Send, Settings, Plus, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
 import { OptimizedMessageBubble } from './OptimizedMessageBubble';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UpdatedLayoutProps {
   onNewChat: () => void;
@@ -26,9 +36,43 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     activeConversation: activeConversationFromHook 
   } = useMessages();
   const { profile } = useProfile();
+  const { signOut } = useAuth();
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; id: string }>>([]);
+
+  // Load saved accounts from localStorage
+  useMemo(() => {
+    const accounts = localStorage.getItem('saved_accounts');
+    if (accounts) {
+      setSavedAccounts(JSON.parse(accounts));
+    }
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    // Save current account to localStorage before logging out
+    if (profile) {
+      const currentAccounts = JSON.parse(localStorage.getItem('saved_accounts') || '[]');
+      const accountExists = currentAccounts.some((acc: any) => acc.id === profile.user_id);
+      
+      if (!accountExists) {
+        const updatedAccounts = [...currentAccounts, { 
+          email: profile.display_name || 'User', 
+          id: profile.user_id 
+        }];
+        localStorage.setItem('saved_accounts', JSON.stringify(updatedAccounts));
+      }
+    }
+    
+    await signOut();
+  }, [signOut, profile]);
+
+  const handleSwitchAccount = useCallback(() => {
+    // For now, just logout - the user will need to login with another account
+    // In a real implementation, you'd maintain multiple session tokens
+    signOut();
+  }, [signOut]);
 
   const handleSendMessage = useCallback(async () => {
     if (newMessage.trim()) {
@@ -87,9 +131,50 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
               <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)}>
                 <Settings className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-5 w-5" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Account Options</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {savedAccounts.length > 0 && (
+                    <>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground">
+                        Switch Account
+                      </DropdownMenuLabel>
+                      {savedAccounts.map((account) => (
+                        <DropdownMenuItem 
+                          key={account.id}
+                          onClick={handleSwitchAccount}
+                          className="cursor-pointer"
+                        >
+                          <Avatar className="h-6 w-6 mr-2">
+                            <AvatarFallback className="text-xs">
+                              {account.email[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">{account.email}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  
+                  <DropdownMenuItem onClick={handleSwitchAccount} className="cursor-pointer">
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    <span>Add Account</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           
