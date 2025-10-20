@@ -48,9 +48,33 @@ export const LookupTools = () => {
   };
 
   const handlePhoneLookup = async () => {
-    // Placeholder for phone lookup API integration
-    console.log('Phone Lookup:', phoneInput);
-    setResults({ type: 'phone', data: 'API integration needed' });
+    if (!phoneInput.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a phone number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`https://phonenumbers.org/api/lookup?number=${encodeURIComponent(phoneInput)}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch phone information');
+      }
+      const data = await response.json();
+      setResults({ type: 'phone', data });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to lookup phone number. Please check the number and try again.",
+        variant: "destructive",
+      });
+      console.error('Phone Lookup error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmailLookup = async () => {
@@ -164,18 +188,45 @@ export const LookupTools = () => {
                     placeholder="Enter phone number (e.g., +1234567890)"
                     value={phoneInput}
                     onChange={(e) => setPhoneInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handlePhoneLookup()}
                   />
-                  <Button onClick={handlePhoneLookup}>
-                    <Search className="h-4 w-4 mr-2" />
+                  <Button onClick={handlePhoneLookup} disabled={loading}>
+                    {loading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Search className="h-4 w-4 mr-2" />
+                    )}
                     Lookup
                   </Button>
                 </div>
-                {results?.type === 'phone' && (
+                {results?.type === 'phone' && results.data && (
                   <Card className="bg-muted">
-                    <CardContent className="pt-6">
-                      <p className="text-sm text-muted-foreground">
-                        Results will appear here once API is integrated
-                      </p>
+                    <CardContent className="pt-6 space-y-3">
+                      {results.data.number && (
+                        <div>
+                          <span className="font-semibold">Number:</span> {results.data.number}
+                        </div>
+                      )}
+                      {results.data.country && (
+                        <div>
+                          <span className="font-semibold">Country:</span> {results.data.country}
+                        </div>
+                      )}
+                      {results.data.carrier && (
+                        <div>
+                          <span className="font-semibold">Carrier:</span> {results.data.carrier}
+                        </div>
+                      )}
+                      {results.data.type && (
+                        <div>
+                          <span className="font-semibold">Type:</span> {results.data.type}
+                        </div>
+                      )}
+                      {results.data.valid !== undefined && (
+                        <div>
+                          <span className="font-semibold">Valid:</span> {results.data.valid ? 'Yes' : 'No'}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
