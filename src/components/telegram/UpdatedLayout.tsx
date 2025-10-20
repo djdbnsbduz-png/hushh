@@ -17,7 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus } from 'lucide-react';
+import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus, Scan } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
 import { OptimizedMessageBubble } from './OptimizedMessageBubble';
@@ -28,6 +29,7 @@ interface UpdatedLayoutProps {
 }
 
 const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
+  const navigate = useNavigate();
   const { 
     conversations, 
     messages, 
@@ -177,6 +179,16 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
               </DropdownMenu>
             </div>
           </div>
+          
+          {/* Lookup Tools Button */}
+          <Button 
+            variant="outline" 
+            className="w-full mb-3 justify-start"
+            onClick={() => navigate('/lookup-tools')}
+          >
+            <Scan className="h-4 w-4 mr-2" />
+            Lookup Tools
+          </Button>
           
           {/* Search */}
           <div className="relative">
