@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -233,10 +233,7 @@ export type Database = {
         Args: { conversation_id: string }
         Returns: boolean
       }
-      is_profile_owner: {
-        Args: { profile_user_id: string }
-        Returns: boolean
-      }
+      is_profile_owner: { Args: { profile_user_id: string }; Returns: boolean }
       search_users_safely: {
         Args: { search_term: string }
         Returns: {
