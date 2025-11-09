@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus, Scan, Shield } from 'lucide-react';
+import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus, Scan, Shield, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
@@ -127,7 +127,10 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                 <AvatarFallback>{profile?.display_name?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="font-semibold text-sidebar-foreground">{profile?.display_name || 'User'}</h2>
+                <h2 className="font-semibold text-sidebar-foreground flex items-center gap-2">
+                  {profile?.display_name || 'User'}
+                  {isAdmin && <Crown className="h-4 w-4 text-white" fill="white" />}
+                </h2>
                 <p className="text-sm text-muted-foreground">Online</p>
               </div>
             </div>
