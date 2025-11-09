@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, memo } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useRole } from '@/hooks/useRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus, Scan } from 'lucide-react';
+import { Search, Send, Settings, Plus, MoreHorizontal, LogOut, UserPlus, Scan, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
@@ -39,6 +40,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   } = useMessages();
   const { profile } = useProfile();
   const { signOut } = useAuth();
+  const { isAdmin } = useRole();
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -162,6 +164,16 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                           <span className="truncate">{account.email}</span>
                         </DropdownMenuItem>
                       ))}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
