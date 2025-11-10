@@ -68,12 +68,13 @@ export const CustomizationProvider = ({ children }: CustomizationProviderProps) 
   // Load settings from profile when available
   useEffect(() => {
     if (profile?.customization) {
-      setSettings({
+      const loadedSettings = {
         ...defaultSettings,
         ...profile.customization,
-      });
+      };
+      setSettings(loadedSettings);
     }
-  }, [profile?.customization]);
+  }, [profile?.id]);
 
   // Apply theme changes to document
   useEffect(() => {
@@ -84,10 +85,14 @@ export const CustomizationProvider = ({ children }: CustomizationProviderProps) 
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     
-    // Save to profile
-    await updateProfile({
-      customization: updatedSettings,
-    });
+    // Save to profile immediately
+    try {
+      await updateProfile({
+        customization: updatedSettings,
+      });
+    } catch (error) {
+      console.error('Error saving customization:', error);
+    }
   };
 
   const applyTheme = () => {

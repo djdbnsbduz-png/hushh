@@ -3,6 +3,7 @@ import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
+import { usePresence } from '@/hooks/usePresence';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,8 +40,9 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     activeConversation: activeConversationFromHook 
   } = useMessages();
   const { profile } = useProfile();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { isAdmin } = useRole();
+  const { isUserOnline } = usePresence();
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -131,7 +133,9 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                   {profile?.display_name || 'User'}
                   {isAdmin && <Crown className="h-4 w-4 text-white" fill="white" />}
                 </h2>
-                <p className="text-sm text-muted-foreground">Online</p>
+                <p className="text-sm text-muted-foreground">
+                  {user && isUserOnline(user.id) ? 'Online' : 'Offline'}
+                </p>
               </div>
             </div>
             <div className="flex space-x-2">
