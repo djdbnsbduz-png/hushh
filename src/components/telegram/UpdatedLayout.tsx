@@ -5,6 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { usePresence } from '@/hooks/usePresence';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
+import { useReadReceipts } from '@/hooks/useReadReceipts';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
+import { useMutedUsers } from '@/hooks/useMutedUsers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -45,10 +48,14 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const { isAdmin } = useRole();
   const { isUserOnline } = usePresence();
   const { typingUsers, setTyping } = useTypingIndicator(activeConversationFromHook);
+  const { markAsRead, isMessageRead } = useReadReceipts(activeConversationFromHook);
+  const { getMessageReactions, addReaction, removeReaction } = useMessageReactions(activeConversationFromHook);
+  const { muteUser, isUserMuted } = useMutedUsers();
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; id: string }>>([]);
+  const [hiddenMessageIds, setHiddenMessageIds] = useState<Set<string>>(new Set());
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Load saved accounts from localStorage
@@ -145,10 +152,36 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   }, [conversations, searchTerm]);
 
   // Memoize active conversation messages for better performance
-  const activeMessages = useMemo(() => 
-    messages.filter(message => message.conversation_id === activeConversationFromHook),
-    [messages, activeConversationFromHook]
-  );
+  const activeMessages = useMemo(() => {
+    const filtered = messages
+      .filter(message => message.conversation_id === activeConversationFromHook)
+      .filter(message => !hiddenMessageIds.has(message.id))
+      .filter(message => !isUserMuted(message.sender_id));
+    return filtered;
+  }, [messages, activeConversationFromHook, hiddenMessageIds, isUserMuted]);
+
+  // Mark messages as read when viewing them
+  useEffect(() => {
+    if (!activeConversationFromHook || !user) return;
+
+    const markMessagesAsRead = async () => {
+      for (const message of activeMessages) {
+        if (message.sender_id !== user.id) {
+          await markAsRead(message.id);
+        }
+      }
+    };
+
+    markMessagesAsRead();
+  }, [activeMessages, activeConversationFromHook, user, markAsRead]);
+
+  const handleClearMessage = useCallback((messageId: string) => {
+    setHiddenMessageIds(prev => new Set([...prev, messageId]));
+  }, []);
+
+  const handleMuteMessageUser = useCallback((userId: string) => {
+    muteUser(userId);
+  }, [muteUser]);
 
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
@@ -321,13 +354,24 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
             {/* Messages */}
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
-                {activeMessages.map((message) => (
-                  <OptimizedMessageBubble
-                    key={message.id}
-                    message={message}
-                    isCurrentUser={message.sender_id === profile?.user_id}
-                  />
-                ))}
+                {activeMessages.map((message) => {
+                  const messageReactions = getMessageReactions(message.id);
+                  const isRead = isMessageRead(message.id, message.sender_id);
+                  
+                  return (
+                    <OptimizedMessageBubble
+                      key={message.id}
+                      message={message}
+                      isCurrentUser={message.sender_id === profile?.user_id}
+                      isRead={isRead}
+                      reactions={messageReactions}
+                      onAddReaction={(emoji) => addReaction(message.id, emoji)}
+                      onRemoveReaction={(emoji) => removeReaction(message.id, emoji)}
+                      onMuteUser={() => handleMuteMessageUser(message.sender_id)}
+                      onClearMessage={() => handleClearMessage(message.id)}
+                    />
+                  );
+                })}
                 
                 {/* Typing Indicator */}
                 {typingUsers.length > 0 && (

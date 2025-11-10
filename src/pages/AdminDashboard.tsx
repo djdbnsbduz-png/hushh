@@ -229,7 +229,7 @@ const AdminDashboardContent = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select user" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-black border-border">
                     {users.map(user => (
                       <SelectItem key={user.user_id} value={user.user_id}>
                         {user.username} ({user.display_name})
@@ -244,7 +244,7 @@ const AdminDashboardContent = () => {
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-black border-border">
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="moderator">Moderator</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
