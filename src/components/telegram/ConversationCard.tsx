@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
+import { usePresence } from '@/hooks/usePresence';
 
 interface Conversation {
   id: string;
@@ -31,11 +32,14 @@ export const ConversationCard = memo(({
   lastMessage, 
   onClick 
 }: ConversationCardProps) => {
+  const { isUserOnline } = usePresence();
   const displayName = conversation.participant_profile?.display_name || 
                      conversation.title || 'Conversation';
   const avatarUrl = conversation.participant_profile?.avatar_url || 
                    conversation.avatar_url;
   const displayInitial = displayName[0]?.toUpperCase() || 'C';
+  const participantUserId = conversation.participant_profile?.user_id;
+  const isOnline = participantUserId ? isUserOnline(participantUserId) : false;
 
   return (
     <Card
@@ -45,10 +49,15 @@ export const ConversationCard = memo(({
       onClick={() => onClick(conversation.id)}
     >
       <div className="flex items-center space-x-3">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={avatarUrl} />
-          <AvatarFallback>{displayInitial}</AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={avatarUrl} />
+            <AvatarFallback>{displayInitial}</AvatarFallback>
+          </Avatar>
+          {isOnline && (
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-sidebar" />
+          )}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <h3 className="font-medium truncate">{displayName}</h3>

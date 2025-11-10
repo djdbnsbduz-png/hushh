@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useMemo, useCallback, memo, useEffect, useRef } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { usePresence } from '@/hooks/usePresence';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -43,10 +44,12 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const { signOut, user } = useAuth();
   const { isAdmin } = useRole();
   const { isUserOnline } = usePresence();
+  const { typingUsers, setTyping } = useTypingIndicator(activeConversationFromHook);
   const [newMessage, setNewMessage] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; id: string }>>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Load saved accounts from localStorage
   useMemo(() => {
@@ -82,10 +85,16 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
 
   const handleSendMessage = useCallback(async () => {
     if (newMessage.trim()) {
+      // Stop typing indicator before sending
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      setTyping(false, profile?.display_name || 'User');
+      
       await sendMessage(newMessage.trim());
       setNewMessage('');
     }
-  }, [newMessage, sendMessage]);
+  }, [newMessage, sendMessage, setTyping, profile?.display_name]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -97,6 +106,33 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const handleConversationClick = useCallback((conversationId: string) => {
     setActiveConversation(conversationId);
   }, [setActiveConversation]);
+
+  // Handle typing indicator
+  const handleTyping = useCallback(() => {
+    if (!profile?.display_name) return;
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set typing status
+    setTyping(true, profile.display_name);
+    
+    // Clear typing status after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      setTyping(false, profile.display_name);
+    }, 2000);
+  }, [setTyping, profile?.display_name]);
+
+  // Cleanup typing timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Memoize filtered conversations to prevent unnecessary re-renders
   const filteredConversations = useMemo(() => {
@@ -271,7 +307,13 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                     {activeConv?.participant_profile?.display_name || 
                      activeConv?.title || 'Conversation'}
                   </h3>
-                  <p className="text-sm text-muted-foreground">Online</p>
+                  <p className="text-sm text-muted-foreground">
+                    {typingUsers.length > 0 
+                      ? `${typingUsers[0].display_name} is typing...`
+                      : activeConv?.participant_profile?.user_id && isUserOnline(activeConv.participant_profile.user_id)
+                        ? 'Online'
+                        : 'Offline'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -286,6 +328,24 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                     isCurrentUser={message.sender_id === profile?.user_id}
                   />
                 ))}
+                
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                  <div className="flex justify-start">
+                    <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-message-received">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {typingUsers[0].display_name} is typing...
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </ScrollArea>
 
@@ -295,7 +355,10 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                 <Input
                   placeholder="Type a message..."
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping();
+                  }}
                   onKeyPress={handleKeyPress}
                   className="flex-1"
                 />
