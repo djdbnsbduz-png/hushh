@@ -324,7 +324,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {activeConversationFromHook ? (
-          <>
+          <div key={activeConversationFromHook} className="flex flex-col h-full animate-fade-in">
             {/* Chat Header */}
             <div className="p-4 border-b border-border bg-card">
               <div className="flex items-center space-x-3">
@@ -352,7 +352,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4 animate-scale-in">
               <div className="space-y-4">
                 {activeMessages.map((message) => {
                   const messageReactions = getMessageReactions(message.id);
@@ -411,10 +411,10 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                 </Button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           /* Welcome Screen */
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center animate-fade-in">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-4">Welcome to 隱私</h2>
               <p className="text-muted-foreground mb-8">
