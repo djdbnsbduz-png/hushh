@@ -24,7 +24,6 @@ interface OptimizedMessageBubbleProps {
   onAddReaction?: (emoji: string) => void;
   onRemoveReaction?: (emoji: string) => void;
   onMuteUser?: () => void;
-  onClearMessage?: () => void;
 }
 
 export const OptimizedMessageBubble = memo(({ 
@@ -35,7 +34,6 @@ export const OptimizedMessageBubble = memo(({
   onAddReaction,
   onRemoveReaction,
   onMuteUser,
-  onClearMessage,
 }: OptimizedMessageBubbleProps) => {
   const { getUserRoles } = useUserRoles([message.sender_id]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -61,7 +59,6 @@ export const OptimizedMessageBubble = memo(({
     <MessageContextMenu
       isCurrentUser={isCurrentUser}
       onMuteUser={onMuteUser || (() => {})}
-      onClearFromFeed={onClearMessage || (() => {})}
     >
       <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} group`}>
         <div className="flex flex-col">

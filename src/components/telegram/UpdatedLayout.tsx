@@ -28,6 +28,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
 import { OptimizedMessageBubble } from './OptimizedMessageBubble';
+import { ConversationHeaderMenu } from './ConversationHeaderMenu';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UpdatedLayoutProps {
@@ -191,6 +192,28 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     muteUser(userId);
   }, [muteUser]);
 
+  const handleClearConversationFromFeed = useCallback(() => {
+    if (activeConversationFromHook) {
+      // Hide all messages in this conversation
+      const messageIds = activeMessages.map(m => m.id);
+      setHiddenMessageIds(prev => new Set([...prev, ...messageIds]));
+    }
+  }, [activeConversationFromHook, activeMessages]);
+
+  const handleDeleteAllMessages = useCallback(async () => {
+    if (!activeConversationFromHook) return;
+
+    try {
+      // Delete all messages in the conversation
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', activeConversationFromHook);
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+    }
+  }, [activeConversationFromHook]);
+
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
   return (
@@ -334,8 +357,12 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
         {activeConversationFromHook ? (
           <div key={activeConversationFromHook} className="flex flex-col h-full animate-fade-in">
             {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-card">
-              <div className="flex items-center space-x-3">
+            <ConversationHeaderMenu
+              onClearFromFeed={handleClearConversationFromFeed}
+              onDeleteForBoth={handleDeleteAllMessages}
+            >
+              <div className="p-4 border-b border-border bg-card cursor-pointer">
+                <div className="flex items-center space-x-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={activeConv?.participant_profile?.avatar_url || activeConv?.avatar_url} />
                   <AvatarFallback>
@@ -358,6 +385,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                 </div>
               </div>
             </div>
+            </ConversationHeaderMenu>
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4 animate-scale-in">
@@ -376,7 +404,6 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                       onAddReaction={(emoji) => addReaction(message.id, emoji)}
                       onRemoveReaction={(emoji) => removeReaction(message.id, emoji)}
                       onMuteUser={() => handleMuteMessageUser(message.sender_id)}
-                      onClearMessage={() => handleClearMessage(message.id)}
                     />
                   );
                 })}
