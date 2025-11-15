@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { MessageContextMenu } from './MessageContextMenu';
-import { Check, CheckCheck, Smile } from 'lucide-react';
+import { Check, Smile } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 
 interface OptimizedMessageBubbleProps {
@@ -96,11 +96,7 @@ export const OptimizedMessageBubble = memo(({
               </p>
               {isCurrentUser && (
                 <span className="text-xs ml-2">
-                  {isRead ? (
-                    <CheckCheck className="h-3 w-3 inline text-blue-400" />
-                  ) : (
-                    <Check className="h-3 w-3 inline" />
-                  )}
+                  <Check className={`h-3 w-3 inline ${isRead ? 'text-green-500' : 'opacity-70'}`} />
                 </span>
               )}
             </div>
@@ -137,8 +133,12 @@ export const OptimizedMessageBubble = memo(({
             </Button>
             
             {showEmojiPicker && (
-              <div className="absolute bottom-full left-0 mb-2 z-50">
-                <EmojiPicker onEmojiClick={handleEmojiClick} theme={Theme.DARK} />
+              <div className="absolute bottom-full left-0 mb-2 z-50" onClick={(e) => e.stopPropagation()}>
+                <EmojiPicker 
+                  onEmojiClick={handleEmojiClick} 
+                  theme={Theme.DARK}
+                  lazyLoadEmojis={true}
+                />
               </div>
             )}
           </div>
