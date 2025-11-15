@@ -43,8 +43,8 @@ export const ConversationCard = memo(({
 
   return (
     <Card
-      className={`p-3 cursor-pointer mb-2 transition-colors hover:bg-sidebar-hover ${
-        isActive ? 'bg-telegram-blue text-white' : 'bg-transparent'
+      className={`p-3 cursor-pointer mb-2 transition-all duration-300 hover-scale ${
+        isActive ? 'bg-telegram-blue text-white' : 'bg-transparent hover:bg-sidebar-hover'
       }`}
       onClick={() => onClick(conversation.id)}
     >
