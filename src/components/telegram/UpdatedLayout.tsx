@@ -57,6 +57,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; id: string }>>([]);
   const [hiddenMessageIds, setHiddenMessageIds] = useState<Set<string>>(new Set());
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load saved accounts from localStorage
   useMemo(() => {
@@ -159,6 +160,13 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
       .filter(message => !isUserMuted(message.sender_id));
     return filtered;
   }, [messages, activeConversationFromHook, hiddenMessageIds, isUserMuted]);
+
+  // Scroll to bottom when conversation or messages change
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeConversationFromHook, activeMessages]);
 
   // Mark messages as read when viewing them
   useEffect(() => {
@@ -390,6 +398,9 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                     </div>
                   </div>
                 )}
+                
+                {/* Scroll anchor */}
+                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 
