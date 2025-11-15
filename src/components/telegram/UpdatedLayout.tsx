@@ -375,13 +375,13 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                 
                 {/* Typing Indicator */}
                 {typingUsers.length > 0 && (
-                  <div className="flex justify-start">
+                  <div className="flex justify-start animate-fade-in">
                     <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-message-received">
                       <div className="flex items-center gap-2">
                         <div className="flex gap-1">
-                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-pulse" style={{ animationDelay: '200ms' }} />
+                          <div className="w-2 h-2 bg-telegram-blue rounded-full animate-pulse" style={{ animationDelay: '400ms' }} />
                         </div>
                         <span className="text-xs text-muted-foreground">
                           {typingUsers[0].display_name} is typing...
