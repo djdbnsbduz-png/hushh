@@ -1,3 +1,4 @@
+import { ReactNode, useState } from 'react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -14,20 +15,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Trash2, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { Trash2, Archive } from 'lucide-react';
 
-interface ConversationHeaderMenuProps {
-  children: React.ReactNode;
+interface ConversationCardMenuProps {
+  children: ReactNode;
   onClearFromFeed: () => void;
   onDeleteAllMessages: () => void;
 }
 
-export const ConversationHeaderMenu = ({
-  children,
-  onClearFromFeed,
-  onDeleteAllMessages,
-}: ConversationHeaderMenuProps) => {
+export const ConversationCardMenu = ({ 
+  children, 
+  onClearFromFeed, 
+  onDeleteAllMessages 
+}: ConversationCardMenuProps) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (
@@ -36,27 +36,30 @@ export const ConversationHeaderMenu = ({
         <ContextMenuTrigger asChild>
           {children}
         </ContextMenuTrigger>
-        <ContextMenuContent className="bg-black border-border w-64 z-50">
-          <ContextMenuItem onClick={onClearFromFeed} className="cursor-pointer">
-            <EyeOff className="mr-2 h-4 w-4" />
-            Clear from feed (keep messages)
+        <ContextMenuContent className="w-56 bg-black border-border">
+          <ContextMenuItem 
+            onClick={onClearFromFeed}
+            className="cursor-pointer"
+          >
+            <Archive className="mr-2 h-4 w-4" />
+            <span>Clear from feed (keep messages)</span>
           </ContextMenuItem>
           <ContextMenuItem 
-            onClick={() => setShowDeleteDialog(true)} 
-            className="cursor-pointer text-destructive"
+            onClick={() => setShowDeleteDialog(true)}
+            className="cursor-pointer text-red-500 focus:text-red-500"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            Delete all messages for both
+            <span>Delete chat and clear all messages</span>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-black border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete all messages?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete all messages in this conversation for both you and the other person. This action cannot be undone.
+              This will permanently delete all messages in this conversation for both parties. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -66,9 +69,9 @@ export const ConversationHeaderMenu = ({
                 onDeleteAllMessages();
                 setShowDeleteDialog(false);
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-500 hover:bg-red-600"
             >
-              Delete
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
