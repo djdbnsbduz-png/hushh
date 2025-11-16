@@ -57,6 +57,10 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; id: string }>>([]);
   const [hiddenMessageIds, setHiddenMessageIds] = useState<Set<string>>(new Set());
+  const [pinnedConversations, setPinnedConversations] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('pinned_conversations');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -145,13 +149,24 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
 
   // Memoize filtered conversations to prevent unnecessary re-renders
   const filteredConversations = useMemo(() => {
-    if (!searchTerm) return conversations;
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    return conversations.filter(conv => {
-      const searchName = conv.participant_profile?.display_name || conv.title || '';
-      return searchName.toLowerCase().includes(lowerSearchTerm);
+    let filtered = searchTerm 
+      ? conversations.filter(conv => {
+          const searchName = conv.participant_profile?.display_name || conv.title || '';
+          return searchName.toLowerCase().includes(searchTerm.toLowerCase());
+        })
+      : conversations;
+    
+    // Sort: pinned conversations first, then by updated_at
+    return filtered.sort((a, b) => {
+      const aIsPinned = pinnedConversations.has(a.id);
+      const bIsPinned = pinnedConversations.has(b.id);
+      
+      if (aIsPinned && !bIsPinned) return -1;
+      if (!aIsPinned && bIsPinned) return 1;
+      
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
     });
-  }, [conversations, searchTerm]);
+  }, [conversations, searchTerm, pinnedConversations]);
 
   // Memoize active conversation messages for better performance
   const activeMessages = useMemo(() => {
@@ -213,6 +228,19 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
       console.error('Error deleting messages:', error);
     }
   }, [activeConversationFromHook]);
+
+  const handleTogglePin = useCallback((conversationId: string) => {
+    setPinnedConversations(prev => {
+      const newPinned = new Set(prev);
+      if (newPinned.has(conversationId)) {
+        newPinned.delete(conversationId);
+      } else {
+        newPinned.add(conversationId);
+      }
+      localStorage.setItem('pinned_conversations', JSON.stringify([...newPinned]));
+      return newPinned;
+    });
+  }, []);
 
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
@@ -336,7 +364,9 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                   conversation={conversation}
                   isActive={activeConversationFromHook === conversation.id}
                   lastMessage={lastMessage}
+                  isPinned={pinnedConversations.has(conversation.id)}
                   onClick={handleConversationClick}
+                  onTogglePin={handleTogglePin}
                 />
               );
             })}
