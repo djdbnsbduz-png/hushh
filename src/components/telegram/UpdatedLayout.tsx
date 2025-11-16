@@ -29,6 +29,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ConversationCard } from './ConversationCard';
 import { OptimizedMessageBubble } from './OptimizedMessageBubble';
 import { ConversationHeaderMenu } from './ConversationHeaderMenu';
+import { WelcomeScreen } from './WelcomeScreen';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UpdatedLayoutProps {
@@ -61,6 +62,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     const saved = localStorage.getItem('pinned_conversations');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -70,6 +72,15 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     if (accounts) {
       setSavedAccounts(JSON.parse(accounts));
     }
+  }, []);
+
+  // Welcome animation timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcomeAnimation(false);
+    }, 2000); // Show for 2 seconds
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleLogout = useCallback(async () => {
@@ -243,6 +254,10 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   }, []);
 
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
+
+  if (showWelcomeAnimation) {
+    return <WelcomeScreen />;
+  }
 
   return (
     <div className="flex h-screen bg-background">
