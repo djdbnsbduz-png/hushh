@@ -160,12 +160,16 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
 
   // Memoize filtered conversations to prevent unnecessary re-renders
   const filteredConversations = useMemo(() => {
-    let filtered = searchTerm 
-      ? conversations.filter(conv => {
-          const searchName = conv.participant_profile?.display_name || conv.title || '';
-          return searchName.toLowerCase().includes(searchTerm.toLowerCase());
-        })
-      : conversations;
+    const hidden = JSON.parse(localStorage.getItem('hidden_conversations') || '[]');
+    
+    let filtered = conversations.filter(conv => !hidden.includes(conv.id));
+    
+    if (searchTerm) {
+      filtered = filtered.filter(conv => {
+        const searchName = conv.participant_profile?.display_name || conv.title || '';
+        return searchName.toLowerCase().includes(searchTerm.toLowerCase());
+      });
+    }
     
     // Sort: pinned conversations first, then by updated_at
     return filtered.sort((a, b) => {
@@ -218,27 +222,35 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     muteUser(userId);
   }, [muteUser]);
 
-  const handleClearConversationFromFeed = useCallback(() => {
-    if (activeConversationFromHook) {
-      // Hide all messages in this conversation
-      const messageIds = activeMessages.map(m => m.id);
-      setHiddenMessageIds(prev => new Set([...prev, ...messageIds]));
+  const handleClearConversationFromFeed = useCallback((conversationId: string) => {
+    // This hides the conversation from view by not showing it
+    // Messages remain in the database
+    setActiveConversation(null);
+    
+    // Add the conversation to a "hidden" list in localStorage
+    const hidden = JSON.parse(localStorage.getItem('hidden_conversations') || '[]');
+    if (!hidden.includes(conversationId)) {
+      hidden.push(conversationId);
+      localStorage.setItem('hidden_conversations', JSON.stringify(hidden));
     }
-  }, [activeConversationFromHook, activeMessages]);
+  }, [setActiveConversation]);
 
-  const handleDeleteAllMessages = useCallback(async () => {
-    if (!activeConversationFromHook) return;
-
+  const handleDeleteAllMessages = useCallback(async (conversationId: string) => {
     try {
       // Delete all messages in the conversation
       await supabase
         .from('messages')
         .delete()
-        .eq('conversation_id', activeConversationFromHook);
+        .eq('conversation_id', conversationId);
+      
+      // Clear from active conversation if it's the current one
+      if (activeConversationFromHook === conversationId) {
+        setActiveConversation(null);
+      }
     } catch (error) {
       console.error('Error deleting messages:', error);
     }
-  }, [activeConversationFromHook]);
+  }, [activeConversationFromHook, setActiveConversation]);
 
   const handleTogglePin = useCallback((conversationId: string) => {
     setPinnedConversations(prev => {
@@ -382,6 +394,8 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                   isPinned={pinnedConversations.has(conversation.id)}
                   onClick={handleConversationClick}
                   onTogglePin={handleTogglePin}
+                  onClearFromFeed={handleClearConversationFromFeed}
+                  onDeleteAllMessages={handleDeleteAllMessages}
                 />
               );
             })}
@@ -403,8 +417,8 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
           <div key={activeConversationFromHook} className="flex flex-col h-full animate-fade-in">
             {/* Chat Header */}
             <ConversationHeaderMenu
-              onClearFromFeed={handleClearConversationFromFeed}
-              onDeleteForBoth={handleDeleteAllMessages}
+              onClearFromFeed={() => handleClearConversationFromFeed(activeConversationFromHook!)}
+              onDeleteAllMessages={() => handleDeleteAllMessages(activeConversationFromHook!)}
             >
               <div className="p-4 border-b border-border bg-card cursor-pointer">
                 <div className="flex items-center space-x-3">

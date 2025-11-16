@@ -2,10 +2,10 @@ import hushImage from '@/assets/hush.png';
 
 export const WelcomeScreen = () => {
   return (
-    <div className="flex items-center justify-center h-screen w-screen bg-gradient-bg">
+    <div className="flex items-center justify-center h-screen w-screen bg-black">
       <div className="text-center max-w-md px-8">
         <div className="mb-8 space-y-6">
-          <h1 className="text-6xl font-bold text-black animate-fade-in" style={{ animationDelay: '0ms' }}>
+          <h1 className="text-6xl font-bold text-white animate-fade-in" style={{ animationDelay: '0ms' }}>
             隱私
           </h1>
           
@@ -13,7 +13,7 @@ export const WelcomeScreen = () => {
             <img 
               src={hushImage} 
               alt="Hush" 
-              className="w-48 h-48 mx-auto object-contain invert"
+              className="w-48 h-48 mx-auto object-contain"
             />
           </div>
         </div>

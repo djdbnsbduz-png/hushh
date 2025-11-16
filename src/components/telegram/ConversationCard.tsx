@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { usePresence } from '@/hooks/usePresence';
 import { Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConversationCardMenu } from './ConversationCardMenu';
 
 interface Conversation {
   id: string;
@@ -28,6 +29,8 @@ interface ConversationCardProps {
   isPinned: boolean;
   onClick: (conversationId: string) => void;
   onTogglePin: (conversationId: string) => void;
+  onClearFromFeed: (conversationId: string) => void;
+  onDeleteAllMessages: (conversationId: string) => void;
 }
 
 export const ConversationCard = memo(({ 
@@ -36,7 +39,9 @@ export const ConversationCard = memo(({
   lastMessage,
   isPinned,
   onClick,
-  onTogglePin
+  onTogglePin,
+  onClearFromFeed,
+  onDeleteAllMessages
 }: ConversationCardProps) => {
   const { isUserOnline } = usePresence();
   const displayName = conversation.participant_profile?.display_name || 
@@ -53,6 +58,10 @@ export const ConversationCard = memo(({
   };
 
   return (
+    <ConversationCardMenu
+      onClearFromFeed={() => onClearFromFeed(conversation.id)}
+      onDeleteAllMessages={() => onDeleteAllMessages(conversation.id)}
+    >
     <Card
       className={`group p-3 cursor-pointer mb-2 transition-all duration-300 hover-scale ${
         isActive ? 'bg-telegram-blue text-white' : 'bg-transparent hover:bg-sidebar-hover'
@@ -93,6 +102,7 @@ export const ConversationCard = memo(({
         </Button>
       </div>
     </Card>
+    </ConversationCardMenu>
   );
 });
 
