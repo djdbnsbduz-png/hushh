@@ -271,6 +271,33 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          used: boolean | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          used?: boolean | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          used?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -280,6 +307,7 @@ export type Database = {
         Args: { check_username: string }
         Returns: boolean
       }
+      cleanup_expired_codes: { Args: never; Returns: undefined }
       get_conversation_profile: {
         Args: { target_user_id: string }
         Returns: {
