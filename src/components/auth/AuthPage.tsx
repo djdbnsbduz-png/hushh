@@ -16,9 +16,11 @@ export const AuthPage = () => {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'verify'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'verify' | '2fa'>('signin');
   const [verificationCode, setVerificationCode] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
+  const [pendingUserId, setPendingUserId] = useState('');
+  const [twoFactorCode, setTwoFactorCode] = useState('');
   const { toast } = useToast();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -51,7 +53,7 @@ export const AuthPage = () => {
         loginEmail = `${email.toLowerCase()}@app.local`;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password,
       });
@@ -62,11 +64,132 @@ export const AuthPage = () => {
           description: error.message,
           variant: "destructive",
         });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // Sign out immediately after verification - we'll sign in again after 2FA
+        await supabase.auth.signOut();
+        
+        // Send 2FA code
+        const { data: functionData, error: functionError } = await supabase.functions.invoke(
+          'send-verification-code',
+          {
+            body: {
+              email: data.user.email,
+              userId: data.user.id,
+            },
+          }
+        );
+
+        if (functionError) {
+          console.error('Function error:', functionError);
+          toast({
+            title: "Error",
+            description: "Failed to send verification code. Please try again.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Store pending login info and switch to 2FA mode
+        setPendingEmail(data.user.email || '');
+        setPendingUserId(data.user.id);
+        setAuthMode('2fa');
+        toast({
+          title: "Verification Code Sent",
+          description: "Please check your email for the 6-digit code.",
+        });
       }
     } catch (error) {
+      console.error('Sign in error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      // Verify the code from database
+      const { data: codes, error: queryError } = await supabase
+        .from('verification_codes')
+        .select('*')
+        .eq('user_id', pendingUserId)
+        .eq('code', twoFactorCode.trim())
+        .eq('used', false)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (queryError) {
+        console.error('Query error:', queryError);
+        toast({
+          title: "Error",
+          description: "Failed to verify code. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!codes || codes.length === 0) {
+        toast({
+          title: "Invalid Code",
+          description: "The code is incorrect or has expired. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Mark code as used
+      await supabase
+        .from('verification_codes')
+        .update({ used: true })
+        .eq('id', codes[0].id);
+
+      // Now sign in for real
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: pendingEmail,
+        password,
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: signInError.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      toast({
+        title: "Success!",
+        description: "You have been signed in successfully.",
+      });
+
+      // Reset form
+      setEmail('');
+      setPassword('');
+      setTwoFactorCode('');
+      setPendingEmail('');
+      setPendingUserId('');
+    } catch (error) {
+      console.error('2FA verification error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred during verification",
         variant: "destructive",
       });
     } finally {
@@ -427,6 +550,46 @@ export const AuthPage = () => {
     </form>
   );
 
+  const render2FAForm = () => (
+    <form onSubmit={handleVerify2FA} className="space-y-4">
+      <div className="text-center mb-4">
+        <p className="text-sm text-muted-foreground">
+          A 6-digit verification code has been sent to <span className="font-medium">{pendingEmail}</span>
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="2fa-code">Verification Code</Label>
+        <Input
+          id="2fa-code"
+          type="text"
+          placeholder="Enter the 6-digit code"
+          value={twoFactorCode}
+          onChange={(e) => setTwoFactorCode(e.target.value)}
+          required
+          maxLength={6}
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        Verify & Sign In
+      </Button>
+      <Button 
+        type="button" 
+        variant="outline" 
+        className="w-full" 
+        onClick={() => {
+          setAuthMode('signin');
+          setTwoFactorCode('');
+          setPendingEmail('');
+          setPendingUserId('');
+        }}
+        disabled={isLoading}
+      >
+        Back to Sign In
+      </Button>
+    </form>
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -436,14 +599,16 @@ export const AuthPage = () => {
             {authMode === 'signin' && 'Sign in to your existing account'}
             {authMode === 'signup' && 'Create a new account to get started'}
             {authMode === 'verify' && 'Verify your email address'}
+            {authMode === '2fa' && 'Two-Factor Authentication'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {authMode !== 'verify' && renderAuthModeSelector()}
+          {authMode !== 'verify' && authMode !== '2fa' && renderAuthModeSelector()}
           
           {authMode === 'signin' && renderSignInForm()}
           {authMode === 'signup' && renderSignUpForm()}
           {authMode === 'verify' && renderVerifyForm()}
+          {authMode === '2fa' && render2FAForm()}
         </CardContent>
       </Card>
     </div>
