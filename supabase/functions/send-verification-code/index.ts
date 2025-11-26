@@ -47,8 +47,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send email with code
+    // NOTE: Update the "from" address to use your verified domain from resend.com/domains
     const emailResponse = await resend.emails.send({
-      from: "Security <onboarding@resend.dev>",
+      from: "Security <security@yourdomain.com>",
       to: [email],
       subject: "Your Login Verification Code",
       html: `
@@ -65,11 +66,25 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (emailResponse.error) {
-      console.error("Email error:", emailResponse.error);
+      console.error("Email sending failed:", emailResponse.error);
+      
+      // Provide helpful error message for common issues
+      if (emailResponse.error.message?.includes("verify a domain")) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Email domain not verified. Please verify your domain at resend.com/domains and update the 'from' address in the edge function." 
+          }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
+      
       throw new Error("Failed to send verification email");
     }
 
-    console.log("Verification code sent successfully to:", email);
+    console.log("Verification code sent successfully");
 
     return new Response(
       JSON.stringify({ success: true, message: "Verification code sent" }),
