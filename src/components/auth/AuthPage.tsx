@@ -69,22 +69,19 @@ export const AuthPage = () => {
       }
 
       if (data.user) {
-        // Sign out immediately after verification - we'll sign in again after 2FA
+        // Sign out immediately after password verification
         await supabase.auth.signOut();
         
-        // Send 2FA code
-        const { data: functionData, error: functionError } = await supabase.functions.invoke(
-          'send-verification-code',
-          {
-            body: {
-              email: data.user.email,
-              userId: data.user.id,
-            },
-          }
-        );
+        // Send OTP using Supabase's built-in email service
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: loginEmail,
+          options: {
+            shouldCreateUser: false,
+          },
+        });
 
-        if (functionError) {
-          console.error('Function error:', functionError);
+        if (otpError) {
+          console.error('OTP error:', otpError);
           toast({
             title: "Error",
             description: "Failed to send verification code. Please try again.",
@@ -95,12 +92,12 @@ export const AuthPage = () => {
         }
 
         // Store pending login info and switch to 2FA mode
-        setPendingEmail(data.user.email || '');
+        setPendingEmail(loginEmail);
         setPendingUserId(data.user.id);
         setAuthMode('2fa');
         toast({
           title: "Verification Code Sent",
-          description: "Please check your email for the 6-digit code.",
+          description: "Please check your email for the 6-digit verification code.",
         });
       }
     } catch (error) {
@@ -120,29 +117,15 @@ export const AuthPage = () => {
     setIsLoading(true);
 
     try {
-      // Verify the code from database
-      const { data: codes, error: queryError } = await supabase
-        .from('verification_codes')
-        .select('*')
-        .eq('user_id', pendingUserId)
-        .eq('code', twoFactorCode.trim())
-        .eq('used', false)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Verify OTP using Supabase's built-in verification
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: pendingEmail,
+        token: twoFactorCode.trim(),
+        type: 'email',
+      });
 
-      if (queryError) {
-        console.error('Query error:', queryError);
-        toast({
-          title: "Error",
-          description: "Failed to verify code. Please try again.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      if (!codes || codes.length === 0) {
+      if (error) {
+        console.error('OTP verification error:', error);
         toast({
           title: "Invalid Code",
           description: "The code is incorrect or has expired. Please try again.",
@@ -152,39 +135,19 @@ export const AuthPage = () => {
         return;
       }
 
-      // Mark code as used
-      await supabase
-        .from('verification_codes')
-        .update({ used: true })
-        .eq('id', codes[0].id);
-
-      // Now sign in for real
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: pendingEmail,
-        password,
-      });
-
-      if (signInError) {
+      if (data.user) {
         toast({
-          title: "Error",
-          description: signInError.message,
-          variant: "destructive",
+          title: "Success!",
+          description: "You have been signed in successfully.",
         });
-        setIsLoading(false);
-        return;
+
+        // Reset form
+        setEmail('');
+        setPassword('');
+        setTwoFactorCode('');
+        setPendingEmail('');
+        setPendingUserId('');
       }
-
-      toast({
-        title: "Success!",
-        description: "You have been signed in successfully.",
-      });
-
-      // Reset form
-      setEmail('');
-      setPassword('');
-      setTwoFactorCode('');
-      setPendingEmail('');
-      setPendingUserId('');
     } catch (error) {
       console.error('2FA verification error:', error);
       toast({
