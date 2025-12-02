@@ -47,9 +47,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Send email with code
-    // NOTE: Update the "from" address to use your verified domain from resend.com/domains
+    // NOTE: Using Resend's test domain for development. For production, verify your own domain at resend.com/domains
     const emailResponse = await resend.emails.send({
-      from: "Security <security@yourdomain.com>",
+      from: "Security <onboarding@resend.dev>",
       to: [email],
       subject: "Your Login Verification Code",
       html: `
