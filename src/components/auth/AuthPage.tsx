@@ -26,6 +26,7 @@ export const AuthPage = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log('[Sign In] Starting sign in process...');
 
     try {
       let loginEmail = email;
@@ -53,12 +54,14 @@ export const AuthPage = () => {
         loginEmail = `${email.toLowerCase()}@app.local`;
       }
 
+      console.log('[Sign In] Attempting password verification...');
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password,
       });
 
       if (error) {
+        console.error('[Sign In] Password verification failed:', error);
         toast({
           title: "Error",
           description: error.message,
@@ -69,9 +72,11 @@ export const AuthPage = () => {
       }
 
       if (data.user) {
+        console.log('[Sign In] Password verified, signing out...');
         // Sign out immediately after password verification
         await supabase.auth.signOut();
         
+        console.log('[Sign In] Sending OTP...');
         // Send OTP using Supabase's built-in email service
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email: loginEmail,
@@ -81,7 +86,7 @@ export const AuthPage = () => {
         });
 
         if (otpError) {
-          console.error('OTP error:', otpError);
+          console.error('[Sign In] OTP error:', otpError);
           toast({
             title: "Error",
             description: "Failed to send verification code. Please try again.",
@@ -92,9 +97,11 @@ export const AuthPage = () => {
         }
 
         // Store pending login info and switch to 2FA mode
+        console.log('[Sign In] Switching to 2FA mode...');
         setPendingEmail(loginEmail);
         setPendingUserId(data.user.id);
         setAuthMode('2fa');
+        console.log('[Sign In] Auth mode set to 2FA');
         toast({
           title: "Verification Code Sent",
           description: "Please check your email for the 6-digit verification code.",
