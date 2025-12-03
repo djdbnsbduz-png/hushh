@@ -16,12 +16,31 @@ export const AuthPage = () => {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'verify' | '2fa'>('signin');
   const [verificationCode, setVerificationCode] = useState('');
-  const [pendingEmail, setPendingEmail] = useState('');
-  const [pendingUserId, setPendingUserId] = useState('');
   const [twoFactorCode, setTwoFactorCode] = useState('');
   const { toast } = useToast();
+
+  // Persist 2FA state across remounts (component unmounts when user briefly authenticates)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'verify' | '2fa'>(() => {
+    const pending = sessionStorage.getItem('pending_2fa');
+    return pending ? '2fa' : 'signin';
+  });
+  const [pendingEmail, setPendingEmail] = useState(() => {
+    const pending = sessionStorage.getItem('pending_2fa');
+    if (pending) {
+      const data = JSON.parse(pending);
+      return data.email || '';
+    }
+    return '';
+  });
+  const [pendingUserId, setPendingUserId] = useState(() => {
+    const pending = sessionStorage.getItem('pending_2fa');
+    if (pending) {
+      const data = JSON.parse(pending);
+      return data.userId || '';
+    }
+    return '';
+  });
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,8 +115,10 @@ export const AuthPage = () => {
           return;
         }
 
-        // Store pending login info and switch to 2FA mode
+        // Store pending login info in sessionStorage to persist across remounts
         console.log('[Sign In] Switching to 2FA mode...');
+        const pending2fa = { email: loginEmail, userId: data.user.id };
+        sessionStorage.setItem('pending_2fa', JSON.stringify(pending2fa));
         setPendingEmail(loginEmail);
         setPendingUserId(data.user.id);
         setAuthMode('2fa');
@@ -143,6 +164,8 @@ export const AuthPage = () => {
       }
 
       if (data.user) {
+        // Clear 2FA state from sessionStorage on success
+        sessionStorage.removeItem('pending_2fa');
         toast({
           title: "Success!",
           description: "You have been signed in successfully.",
@@ -548,6 +571,7 @@ export const AuthPage = () => {
         variant="outline" 
         className="w-full" 
         onClick={() => {
+          sessionStorage.removeItem('pending_2fa');
           setAuthMode('signin');
           setTwoFactorCode('');
           setPendingEmail('');
