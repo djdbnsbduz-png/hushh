@@ -318,4 +318,24 @@
       transform: translateY(0) scale(1);
     }
   }
+
+  /* Glow animation for special roles */
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 8px currentColor;
+    }
+    50% {
+      box-shadow: 0 0 16px currentColor, 0 0 24px currentColor;
+    }
+  }
+
+  .role-rich {
+    --tw-shadow-color: rgb(251 191 36);
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .role-pretty {
+    --tw-shadow-color: rgb(244 114 182);
+    animation: glow 2s ease-in-out infinite;
+  }
 }

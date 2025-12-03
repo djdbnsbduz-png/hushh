@@ -24,7 +24,7 @@ interface UserProfile {
 interface UserRole {
   id: string;
   user_id: string;
-  role: 'admin' | 'moderator' | 'user';
+  role: 'admin' | 'moderator' | 'user' | 'rich' | 'pretty';
 }
 
 const AdminDashboardContent = () => {
@@ -32,7 +32,7 @@ const AdminDashboardContent = () => {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'moderator' | 'user'>('user');
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'moderator' | 'user' | 'rich' | 'pretty'>('user');
   const [actionLoading, setActionLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -143,14 +143,18 @@ const AdminDashboardContent = () => {
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeClass = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'destructive';
+        return 'bg-red-600 text-white';
       case 'moderator':
-        return 'default';
+        return 'bg-blue-600 text-white';
+      case 'rich':
+        return 'bg-gradient-to-r from-yellow-400 to-amber-500 text-black font-semibold animate-pulse shadow-[0_0_10px_rgba(251,191,36,0.6)]';
+      case 'pretty':
+        return 'bg-gradient-to-r from-pink-400 to-rose-500 text-white font-semibold animate-pulse shadow-[0_0_10px_rgba(244,114,182,0.6)]';
       default:
-        return 'secondary';
+        return 'bg-secondary text-secondary-foreground';
     }
   };
 
@@ -248,6 +252,8 @@ const AdminDashboardContent = () => {
                     <SelectItem value="user">User</SelectItem>
                     <SelectItem value="moderator">Moderator</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="rich">Rich ✨</SelectItem>
+                    <SelectItem value="pretty">Pretty 💖</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -295,9 +301,9 @@ const AdminDashboardContent = () => {
                         <div className="flex gap-1 flex-wrap">
                           {roles.length > 0 ? (
                             roles.map((role, idx) => (
-                              <Badge key={idx} variant={getRoleBadgeVariant(role)}>
+                              <span key={idx} className={`px-2 py-0.5 rounded text-xs ${getRoleBadgeClass(role)}`}>
                                 {role}
-                              </Badge>
+                              </span>
                             ))
                           ) : (
                             <Badge variant="outline">No roles</Badge>

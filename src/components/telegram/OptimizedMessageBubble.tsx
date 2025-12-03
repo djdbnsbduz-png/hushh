@@ -1,9 +1,9 @@
 import { memo, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { MessageContextMenu } from './MessageContextMenu';
+import { RoleBadge } from '@/components/ui/RoleBadge';
 import { Check, Smile } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 
@@ -16,6 +16,10 @@ interface OptimizedMessageBubbleProps {
     profiles?: {
       display_name: string;
       avatar_url?: string;
+      username?: string;
+      bio?: string;
+      banner_url?: string;
+      name_font?: string;
     };
   };
   isCurrentUser: boolean;
@@ -24,7 +28,16 @@ interface OptimizedMessageBubbleProps {
   onAddReaction?: (emoji: string) => void;
   onRemoveReaction?: (emoji: string) => void;
   onMuteUser?: () => void;
+  onProfileClick?: (userId: string) => void;
 }
+
+const NAME_FONTS: Record<string, string> = {
+  default: 'font-sans',
+  serif: 'font-serif',
+  mono: 'font-mono',
+  cursive: 'font-[cursive]',
+  fantasy: 'font-[fantasy]',
+};
 
 export const OptimizedMessageBubble = memo(({ 
   message, 
@@ -34,13 +47,13 @@ export const OptimizedMessageBubble = memo(({
   onAddReaction,
   onRemoveReaction,
   onMuteUser,
+  onProfileClick,
 }: OptimizedMessageBubbleProps) => {
   const { getUserRoles } = useUserRoles([message.sender_id]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const roles = getUserRoles(message.sender_id);
   
-  const isAdmin = roles.includes('admin');
-  const isModerator = roles.includes('moderator');
+  const fontClass = NAME_FONTS[message.profiles?.name_font || 'default'] || NAME_FONTS.default;
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     onAddReaction?.(emojiData.emoji);
@@ -54,6 +67,15 @@ export const OptimizedMessageBubble = memo(({
       onAddReaction?.(emoji);
     }
   };
+
+  const handleNameClick = () => {
+    if (!isCurrentUser && onProfileClick) {
+      onProfileClick(message.sender_id);
+    }
+  };
+
+  // Filter and order roles to display
+  const displayRoles = roles.filter(role => role !== 'user');
 
   return (
     <MessageContextMenu
@@ -70,20 +92,16 @@ export const OptimizedMessageBubble = memo(({
             }`}
           >
             {!isCurrentUser && (
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-xs font-medium text-telegram-blue">
+              <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                <button 
+                  onClick={handleNameClick}
+                  className={`text-xs font-medium text-telegram-blue hover:underline cursor-pointer ${fontClass}`}
+                >
                   {message.profiles?.display_name || 'Unknown User'}
-                </p>
-                {isAdmin && (
-                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
-                    Admin
-                  </Badge>
-                )}
-                {isModerator && !isAdmin && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
-                    Moderator
-                  </Badge>
-                )}
+                </button>
+                {displayRoles.map((role) => (
+                  <RoleBadge key={role} role={role} size="sm" />
+                ))}
               </div>
             )}
             <p className="text-sm">{message.content}</p>

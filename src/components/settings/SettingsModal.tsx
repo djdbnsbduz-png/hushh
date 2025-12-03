@@ -29,12 +29,14 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const { signOut } = useAuth();
   const { settings, updateCustomization, resetToDefaults } = useCustomization();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerFileRef = useRef<HTMLInputElement>(null);
   const backgroundFileRef = useRef<HTMLInputElement>(null);
   
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [phone, setPhone] = useState('');
+  const [nameFont, setNameFont] = useState('default');
 
   // Update form fields when profile data changes or modal opens
   useEffect(() => {
@@ -42,6 +44,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       setDisplayName(profile.display_name || '');
       setUsername(profile.username || '');
       setBio(profile.bio || '');
+      setNameFont(profile.name_font || 'default');
     }
   }, [open, profile]);
 
@@ -57,6 +60,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       display_name: displayName,
       username,
       bio,
+      name_font: nameFont,
     });
     
     const phoneSuccess = await updatePhoneNumber(phone || null);
@@ -71,6 +75,33 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
     const file = e.target.files?.[0];
     if (file) {
       await uploadAvatar(file);
+    }
+  };
+
+  const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Upload to Supabase storage
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { useAuth } = await import('@/hooks/useAuth');
+      
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const userId = profile?.user_id;
+      if (!userId) return;
+      
+      const fileName = `${userId}/banner.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) {
+        console.error('Error uploading banner:', uploadError);
+        return;
+      }
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      await updateProfile({ banner_url: data.publicUrl });
     }
   };
 
@@ -94,6 +125,14 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
     await signOut();
     onOpenChange(false);
   };
+
+  const nameFontOptions = [
+    { value: 'default', label: 'Default (Sans)' },
+    { value: 'serif', label: 'Serif' },
+    { value: 'mono', label: 'Monospace' },
+    { value: 'cursive', label: 'Cursive' },
+    { value: 'fantasy', label: 'Fantasy' },
+  ];
 
   const fontOptions = [
     { value: 'Inter', label: 'Inter' },
@@ -163,8 +202,38 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
           <TabsContent value="profile" className="space-y-6">
             {/* Profile Picture Section */}
             <div className="flex flex-col items-center space-y-4">
-              <div className="relative">
-                <Avatar className="h-20 w-20">
+              {/* Banner */}
+              <div className="w-full relative">
+                <div className="h-24 w-full rounded-lg bg-gradient-to-br from-primary/30 to-secondary overflow-hidden">
+                  {profile?.banner_url && (
+                    <img
+                      src={profile.banner_url}
+                      alt="Profile banner"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="absolute bottom-2 right-2"
+                  onClick={() => bannerFileRef.current?.click()}
+                >
+                  <ImageIcon className="h-4 w-4 mr-1" />
+                  Change Banner
+                </Button>
+                <input
+                  ref={bannerFileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerChange}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Avatar */}
+              <div className="relative -mt-10">
+                <Avatar className="h-20 w-20 border-4 border-card">
                   <AvatarImage src={profile?.avatar_url} />
                   <AvatarFallback className="text-lg">
                     {profile?.display_name?.[0]?.toUpperCase() || 'U'}
@@ -187,7 +256,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                Click the camera icon to change your profile picture
+                Click to change your profile picture or banner
               </p>
             </div>
 
@@ -227,6 +296,25 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                   placeholder="Tell us about yourself"
                   rows={3}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="name-font">Name Font Style</Label>
+                <Select value={nameFont} onValueChange={setNameFont}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {nameFontOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose how your name appears in chats
+                </p>
               </div>
 
               <div className="space-y-2">
