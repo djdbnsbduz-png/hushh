@@ -3,6 +3,7 @@ import { useMessages } from '@/hooks/useMessages';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { usePresence } from '@/hooks/usePresence';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import { useReadReceipts } from '@/hooks/useReadReceipts';
@@ -14,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { SettingsModal } from '@/components/settings/SettingsModal';
+import { UserProfileModal } from '@/components/profile/UserProfileModal';
 import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
@@ -31,6 +33,7 @@ import { OptimizedMessageBubble } from './OptimizedMessageBubble';
 import { ConversationHeaderMenu } from './ConversationHeaderMenu';
 import { WelcomeScreen } from './WelcomeScreen';
 import { supabase } from '@/integrations/supabase/client';
+import { AppRole } from '@/hooks/useRole';
 
 interface UpdatedLayoutProps {
   onNewChat: () => void;
@@ -63,6 +66,9 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const [selectedProfileRoles, setSelectedProfileRoles] = useState<AppRole[]>([]);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -265,6 +271,33 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
     });
   }, []);
 
+  const handleProfileClick = useCallback(async (userId: string) => {
+    try {
+      // Fetch the user's profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Fetch the user's roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (rolesError) throw rolesError;
+
+      setSelectedProfile(profileData);
+      setSelectedProfileRoles(rolesData?.map(r => r.role as AppRole) || []);
+      setProfileModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  }, []);
+
   const activeConv = conversations.find(c => c.id === activeConversationFromHook);
 
   if (showWelcomeAnimation) {
@@ -463,6 +496,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
                       onAddReaction={(emoji) => addReaction(message.id, emoji)}
                       onRemoveReaction={(emoji) => removeReaction(message.id, emoji)}
                       onMuteUser={() => handleMuteMessageUser(message.sender_id)}
+                      onProfileClick={handleProfileClick}
                     />
                   );
                 })}
@@ -527,6 +561,12 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
       </div>
 
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <UserProfileModal 
+        profile={selectedProfile} 
+        roles={selectedProfileRoles} 
+        isOpen={profileModalOpen} 
+        onClose={() => setProfileModalOpen(false)} 
+      />
     </div>
   );
 };

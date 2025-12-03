@@ -193,33 +193,39 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          banner_url: string | null
           bio: string | null
           created_at: string | null
           customization: Json | null
           display_name: string | null
           id: string
+          name_font: string | null
           updated_at: string | null
           user_id: string
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string | null
           customization?: Json | null
           display_name?: string | null
           id?: string
+          name_font?: string | null
           updated_at?: string | null
           user_id: string
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          banner_url?: string | null
           bio?: string | null
           created_at?: string | null
           customization?: Json | null
           display_name?: string | null
           id?: string
+          name_font?: string | null
           updated_at?: string | null
           user_id?: string
           username?: string | null
@@ -398,7 +404,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "rich" | "pretty"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -526,7 +532,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "rich", "pretty"],
     },
   },
 } as const

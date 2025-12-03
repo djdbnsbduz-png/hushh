@@ -11,6 +11,8 @@ interface Profile {
   username: string;
   avatar_url?: string;
   bio?: string;
+  banner_url?: string;
+  name_font?: string;
   created_at: string;
   updated_at: string;
   customization?: {
