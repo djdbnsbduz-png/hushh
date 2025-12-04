@@ -1,8 +1,8 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { RoleBadge } from '@/components/ui/RoleBadge';
 import { AppRole } from '@/hooks/useRole';
-import { Calendar, User } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 interface UserProfile {
   user_id: string;
@@ -39,15 +39,15 @@ export const UserProfileModal = ({ profile, roles, isOpen, onClose }: UserProfil
   const fontClass = NAME_FONTS[profile.name_font || 'default'] || NAME_FONTS.default;
   const joinDate = new Date(profile.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
   });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-card border-card-border">
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden bg-[hsl(var(--card))] border-none rounded-lg">
         {/* Banner */}
-        <div className="relative h-32 w-full bg-gradient-to-br from-primary/30 to-secondary">
+        <div className="relative h-24 w-full bg-gradient-to-br from-primary/40 to-secondary/60">
           {profile.banner_url && (
             <img
               src={profile.banner_url}
@@ -55,41 +55,55 @@ export const UserProfileModal = ({ profile, roles, isOpen, onClose }: UserProfil
               className="w-full h-full object-cover"
             />
           )}
-          {/* Avatar overlay */}
-          <div className="absolute -bottom-12 left-6">
-            <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
-              <AvatarImage src={profile.avatar_url} alt={profile.display_name} />
-              <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                {profile.display_name?.charAt(0) || profile.username?.charAt(0) || '?'}
-              </AvatarFallback>
-            </Avatar>
+        </div>
+
+        {/* Avatar - overlapping banner */}
+        <div className="relative px-4">
+          <div className="absolute -top-12 left-4">
+            <div className="relative">
+              <Avatar className="h-20 w-20 border-[6px] border-[hsl(var(--card))] shadow-lg">
+                <AvatarImage src={profile.avatar_url} alt={profile.display_name} />
+                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  {profile.display_name?.charAt(0) || profile.username?.charAt(0) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              {/* Online indicator */}
+              <div className="absolute bottom-1 right-1 h-4 w-4 rounded-full bg-green-500 border-[3px] border-[hsl(var(--card))]" />
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="pt-14 px-6 pb-6 space-y-4">
-          <DialogHeader className="text-left space-y-1">
-            <DialogTitle className={`text-xl flex items-center gap-2 flex-wrap ${fontClass}`}>
+        <div className="pt-10 px-4 pb-4 bg-[hsl(var(--popover))] rounded-b-lg">
+          {/* Name and username */}
+          <div className="space-y-0.5 mb-3">
+            <div className={`text-xl font-semibold text-foreground flex items-center gap-2 flex-wrap ${fontClass}`}>
               {profile.display_name || profile.username}
               {roles.map((role) => (
-                <RoleBadge key={role} role={role} size="md" />
+                <RoleBadge key={role} role={role} size="sm" />
               ))}
-            </DialogTitle>
-            <p className="text-muted-foreground text-sm">@{profile.username}</p>
-          </DialogHeader>
+            </div>
+            <p className="text-muted-foreground text-sm">{profile.username}</p>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-border my-3" />
 
           {/* Bio */}
           {profile.bio && (
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium text-foreground">Bio</h4>
+            <div className="mb-3">
+              <h4 className="text-xs font-bold uppercase text-foreground mb-1">About Me</h4>
               <p className="text-sm text-muted-foreground">{profile.bio}</p>
             </div>
           )}
 
-          {/* Info */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>Joined {joinDate}</span>
+          {/* Member Since */}
+          <div>
+            <h4 className="text-xs font-bold uppercase text-foreground mb-1">Member Since</h4>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{joinDate}</span>
+            </div>
           </div>
         </div>
       </DialogContent>
