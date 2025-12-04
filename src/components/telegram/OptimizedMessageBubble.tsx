@@ -68,7 +68,10 @@ export const OptimizedMessageBubble = memo(({
     }
   };
 
-  const handleNameClick = () => {
+  const handleNameClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Name clicked, isCurrentUser:', isCurrentUser, 'sender_id:', message.sender_id);
     if (!isCurrentUser && onProfileClick) {
       onProfileClick(message.sender_id);
     }
@@ -93,9 +96,10 @@ export const OptimizedMessageBubble = memo(({
           >
             {!isCurrentUser && (
               <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                <button 
+              <button 
+                  type="button"
                   onClick={handleNameClick}
-                  className={`text-xs font-medium text-telegram-blue hover:underline cursor-pointer ${fontClass}`}
+                  className={`text-xs font-medium text-telegram-blue hover:underline cursor-pointer bg-transparent border-none p-0 ${fontClass}`}
                 >
                   {message.profiles?.display_name || 'Unknown User'}
                 </button>
