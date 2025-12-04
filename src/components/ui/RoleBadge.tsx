@@ -28,9 +28,9 @@ export const RoleBadge = ({ role, size = 'sm' }: RoleBadgeProps) => {
   const getLabel = () => {
     switch (role) {
       case 'rich':
-        return '✨ Rich';
+        return 'Rich';
       case 'pretty':
-        return '💖 Pretty';
+        return 'Pretty';
       default:
         return role.charAt(0).toUpperCase() + role.slice(1);
     }
