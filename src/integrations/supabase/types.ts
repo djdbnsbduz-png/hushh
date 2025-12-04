@@ -200,6 +200,7 @@ export type Database = {
           display_name: string | null
           id: string
           name_font: string | null
+          profile_accent_color: string | null
           updated_at: string | null
           user_id: string
           username: string | null
@@ -213,6 +214,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           name_font?: string | null
+          profile_accent_color?: string | null
           updated_at?: string | null
           user_id: string
           username?: string | null
@@ -226,6 +228,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           name_font?: string | null
+          profile_accent_color?: string | null
           updated_at?: string | null
           user_id?: string
           username?: string | null
