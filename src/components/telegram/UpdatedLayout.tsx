@@ -459,8 +459,16 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
               onClearFromFeed={() => handleClearConversationFromFeed(activeConversationFromHook!)}
               onDeleteAllMessages={() => handleDeleteAllMessages(activeConversationFromHook!)}
             >
-              <div className="p-4 border-b border-border bg-card cursor-pointer">
-                <div className="flex items-center space-x-3">
+              <div className="p-4 border-b border-border bg-card">
+                <div 
+                  className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => {
+                    const participantId = activeConv?.participant_profile?.user_id;
+                    if (participantId) {
+                      handleProfileClick(participantId);
+                    }
+                  }}
+                >
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={activeConv?.participant_profile?.avatar_url || activeConv?.avatar_url} />
                   <AvatarFallback>
