@@ -37,6 +37,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
   const [bio, setBio] = useState('');
   const [phone, setPhone] = useState('');
   const [nameFont, setNameFont] = useState('default');
+  const [profileAccentColor, setProfileAccentColor] = useState('#6366f1');
 
   // Update form fields when profile data changes or modal opens
   useEffect(() => {
@@ -45,6 +46,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       setUsername(profile.username || '');
       setBio(profile.bio || '');
       setNameFont(profile.name_font || 'default');
+      setProfileAccentColor(profile.profile_accent_color || '#6366f1');
     }
   }, [open, profile]);
 
@@ -61,6 +63,7 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
       username,
       bio,
       name_font: nameFont,
+      profile_accent_color: profileAccentColor,
     });
     
     const phoneSuccess = await updatePhoneNumber(phone || null);
@@ -204,7 +207,14 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
             <div className="flex flex-col items-center space-y-4">
               {/* Banner */}
               <div className="w-full relative">
-                <div className="h-24 w-full rounded-lg bg-gradient-to-br from-primary/30 to-secondary overflow-hidden">
+                <div 
+                  className="h-24 w-full rounded-lg overflow-hidden"
+                  style={{
+                    background: profile?.banner_url 
+                      ? undefined 
+                      : `linear-gradient(135deg, ${profileAccentColor} 0%, ${profileAccentColor}80 50%, ${profileAccentColor}40 100%)`
+                  }}
+                >
                   {profile?.banner_url && (
                     <img
                       src={profile.banner_url}
@@ -314,6 +324,28 @@ export const SettingsModal = ({ open, onOpenChange }: SettingsModalProps) => {
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   Choose how your name appears in chats
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="profile-accent">Profile Accent Color</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    id="profile-accent"
+                    type="color"
+                    value={profileAccentColor}
+                    onChange={(e) => setProfileAccentColor(e.target.value)}
+                    className="w-16 h-10 p-1 cursor-pointer"
+                  />
+                  <Input
+                    value={profileAccentColor}
+                    onChange={(e) => setProfileAccentColor(e.target.value)}
+                    placeholder="#6366f1"
+                    className="flex-1"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  This color is used for your profile banner gradient
                 </p>
               </div>
 

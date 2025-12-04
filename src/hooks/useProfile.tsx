@@ -13,6 +13,7 @@ interface Profile {
   bio?: string;
   banner_url?: string;
   name_font?: string;
+  profile_accent_color?: string;
   created_at: string;
   updated_at: string;
   customization?: {

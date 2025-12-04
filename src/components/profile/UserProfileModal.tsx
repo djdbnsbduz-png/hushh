@@ -12,6 +12,7 @@ interface UserProfile {
   bio?: string;
   banner_url?: string;
   name_font?: string;
+  profile_accent_color?: string;
   created_at: string;
 }
 
@@ -47,7 +48,14 @@ export const UserProfileModal = ({ profile, roles, isOpen, onClose }: UserProfil
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm p-0 overflow-hidden bg-[hsl(var(--card))] border-none rounded-lg">
         {/* Banner */}
-        <div className="relative h-24 w-full bg-gradient-to-br from-primary/40 to-secondary/60">
+        <div 
+          className="relative h-24 w-full"
+          style={{
+            background: profile.banner_url 
+              ? undefined 
+              : `linear-gradient(135deg, ${profile.profile_accent_color || '#6366f1'} 0%, ${profile.profile_accent_color || '#6366f1'}80 50%, ${profile.profile_accent_color || '#6366f1'}40 100%)`
+          }}
+        >
           {profile.banner_url && (
             <img
               src={profile.banner_url}
