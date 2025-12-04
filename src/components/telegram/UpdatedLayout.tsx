@@ -272,15 +272,21 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
   }, []);
 
   const handleProfileClick = useCallback(async (userId: string) => {
+    console.log('Profile click triggered for userId:', userId);
     try {
       // Fetch the user's profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('user_id, display_name, username, avatar_url, bio, banner_url, name_font, profile_accent_color, created_at')
         .eq('user_id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      console.log('Profile fetch result:', { profileData, profileError });
+
+      if (profileError) {
+        console.error('Profile fetch error:', profileError);
+        return;
+      }
 
       // Fetch the user's roles
       const { data: rolesData, error: rolesError } = await supabase
@@ -288,7 +294,7 @@ const UpdatedLayout = ({ onNewChat }: UpdatedLayoutProps) => {
         .select('role')
         .eq('user_id', userId);
 
-      if (rolesError) throw rolesError;
+      console.log('Roles fetch result:', { rolesData, rolesError });
 
       setSelectedProfile(profileData);
       setSelectedProfileRoles(rolesData?.map(r => r.role as AppRole) || []);
